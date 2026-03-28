@@ -6,13 +6,19 @@
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: normal;
+    color: #000000;
+}
+
 body {
     background-color: #ffffff;
     color: #000000;
     line-height: 1.6;
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Giúp footer luôn nằm ở đáy trang */
+    min-height: 100vh;
 }
 
 a {
@@ -49,7 +55,8 @@ header {
 }
 
 .logo a {
-    font-size: 28px;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 32px;
     font-weight: 700;
     letter-spacing: 4px;
     text-transform: uppercase;
@@ -75,7 +82,7 @@ header {
 
 /* --- MAIN CONTENT --- */
 main {
-    flex: 1; /* Đẩy footer xuống dưới cùng */
+    flex: 1;
     padding: 40px 0;
 }
 
@@ -102,4 +109,75 @@ footer {
 .copyright {
     font-size: 12px;
     color: #888888;
+}
+
+/* --- ICON ACTIONS & SEARCH BAR --- */
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-actions a, .search-container button {
+    color: #000000;
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+#search-form {
+    display: flex;
+    align-items: center;
+    position: relative; /* Làm gốc toạ độ để input bám vào */
+}
+
+#search-input {
+    position: absolute; /* Rút input khỏi luồng chuẩn để không đẩy các thẻ khác */
+    right: 100%;        /* Đẩy input trượt sang mép trái của nút kính lúp */
+    top: 50%;
+    transform: translateY(-50%); /* Căn giữa theo chiều dọc */
+    width: 0;
+    opacity: 0;
+    border: none;
+    border-bottom: 1px solid #000000;
+    outline: none;
+    padding: 0;
+    font-size: 14px;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: #ffffff; /* Cho nền trắng để nếu có trượt đè lên vùng khác thì vẫn dễ nhìn */
+    transition: width 0.4s ease, opacity 0.4s ease, padding 0.4s ease;
+    z-index: 10; /* Đảm bảo thanh tìm kiếm luôn nổi lên trên cùng */
+}
+
+/* Khi thanh tìm kiếm được kích hoạt */
+#search-input.active {
+    width: 180px;
+    opacity: 1;
+    padding: 5px 10px;
+    margin-right: 8px; /* Khoảng cách nhẹ giữa chữ và kính lúp */
+}
+
+.cart-icon {
+    position: relative;
+}
+
+/* --- Hiệu ứng hover cho tất cả icon ở Header --- */
+.user-actions a:hover, 
+.search-container button:hover {
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+/* Đảm bảo icon có hiệu ứng chuyển đổi mượt mà khi di chuột ra/vào */
+.user-actions a, 
+.search-container button {
+    transition: opacity 0.3s ease;
 }
