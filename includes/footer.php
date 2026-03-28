@@ -1,4 +1,4 @@
-</div> </main> <footer>
+<footer>
     <div class="container">
         <div class="footer-links">
             <a href="#">Về VOGUE</a>

@@ -22,7 +22,7 @@ require_once 'db.php';
 
         <nav>
             <ul class="nav-links">
-                <li><a href="index.php">Cửa hàng</a></li>
+                <li><a href="shop.php">Cửa hàng</a></li>
                 <li><a href="#">Nam</a></li>
                 <li><a href="#">Nữ</a></li>
                 <li><a href="#">Phụ kiện</a></li>
@@ -53,6 +53,3 @@ require_once 'db.php';
         </div>
     </div>
 </header>
-
-<main>
-    <div class="container">

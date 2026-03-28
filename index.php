@@ -1,5 +1,57 @@
-<?php require_once 'includes/header.php'; ?>
+<?php
+require_once 'includes/header.php';
 
-<h2 style="text-align: center; margin-top: 50px; font-weight: 300;">Bộ sưu tập mới nhất sẽ hiển thị ở đây.</h2>
+// Truy vấn lấy 4 sản phẩm mới nhất (có tính giá bán FIFO) - Giữ nguyên logic cũ
+$sql = "SELECT p.*, 
+        GREATEST(
+            COALESCE(
+                (SELECT b.import_price 
+                 FROM import_batches b 
+                 JOIN import_receipts r ON b.receipt_id = r.id 
+                 WHERE b.product_id = p.id AND b.quantity_remaining > 0 AND r.status = 'completed' 
+                 ORDER BY r.import_date ASC, b.id ASC LIMIT 1)
+            , 0) * (1 + p.profit_margin / 100), 
+            p.suggested_price
+        ) as final_price
+        FROM products p
+        WHERE p.status = 'visible'
+        ORDER BY p.id DESC 
+        LIMIT 4";
 
-<?php require_once 'includes/footer.php'; ?>
+$latest_products = $conn->query($sql);
+?>
+
+<section class="hero-banner">
+    <h1>VOGUE</h1>
+    <p>Định Hình Phong Cách - Tôn Vinh Cá Tính</p>
+</section>
+
+<main style="padding-bottom: 60px;">
+    <div class="container">
+        
+        <h2 style="text-align: center; margin-bottom: 40px; letter-spacing: 3px; font-size: 24px;">HÀNG MỚI VỀ</h2>
+
+        <?php if($latest_products->num_rows > 0): ?>
+            <div class="product-grid">
+                <?php while($p = $latest_products->fetch_assoc()): ?>
+                    <a href="product_detail.php?id=<?php echo $p['id']; ?>" class="product-card">
+                        <?php if($p['image']): ?>
+                            <img src="<?php echo $p['image']; ?>" alt="<?php echo htmlspecialchars($p['name']); ?>" class="product-image">
+                        <?php else: ?>
+                            <div class="product-image" style="display: flex; align-items: center; justify-content: center; color: #999;">Không có hình</div>
+                        <?php endif; ?>
+                        
+                        <h3 class="product-title"><?php echo htmlspecialchars($p['name']); ?></h3>
+                        <p class="product-price"><?php echo number_format($p['final_price'], 0, ',', '.'); ?>đ</p>
+                    </a>
+                <?php endwhile; ?>
+            </div>
+        <?php else: ?>
+            <p style="text-align: center; color: #666; padding: 40px 0;">Hiện chưa có sản phẩm nào.</p>
+        <?php endif; ?>
+
+        <div style="text-align: center; margin-top: 50px;">
+            <a href="shop.php" class="btn-view-all">Khám phá tất cả bộ sưu tập</a>
+        </div>
+
+    </div> </main> <?php require_once 'includes/footer.php'; ?>
