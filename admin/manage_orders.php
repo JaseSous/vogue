@@ -4,7 +4,7 @@ require_once 'inc_header.php';
 $message = '';
 
 // --- XỬ LÝ CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG ---
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_status'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['order_id']) && isset($_POST['status'])) {
     $order_id = (int)$_POST['order_id'];
     $new_status = $_POST['status'];
     
