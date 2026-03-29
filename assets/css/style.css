@@ -604,3 +604,108 @@ footer {
 .checkout-item-price {
     font-weight: bold;
 }
+
+/* --- HISTORY PAGE --- */
+.history-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.order-card {
+    background: #fff;
+    border: 1px solid #eee;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.order-header {
+    background: #fcfcfc;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.order-header-info {
+    font-size: 14px;
+    color: #555;
+}
+
+.order-header-info strong {
+    color: #000;
+    font-size: 16px;
+}
+
+.order-status {
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 1px solid #ccc;
+}
+
+.status-pending { color: #d9534f; border-color: #d9534f; background: #fdf7f7; }
+.status-confirmed { color: #f0ad4e; border-color: #f0ad4e; background: #fcf8e3; }
+.status-successful { color: #5cb85c; border-color: #5cb85c; background: #f0f9f0; }
+.status-cancelled { color: #999; border-color: #999; background: #f9f9f9; }
+
+.order-body {
+    padding: 20px;
+}
+
+.order-item-list {
+    margin-bottom: 20px;
+    border-bottom: 1px dashed #eee;
+    padding-bottom: 10px;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.history-item img {
+    width: 60px;
+    height: 80px;
+    object-fit: cover;
+    border: 1px solid #eee;
+}
+
+.history-item-info {
+    flex: 1;
+}
+
+.history-item-title {
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.history-item-meta {
+    font-size: 13px;
+    color: #666;
+}
+
+.order-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 14px;
+}
+
+.shipping-info {
+    color: #555;
+    line-height: 1.6;
+}
+
+.order-total-price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #d9534f;
+}
