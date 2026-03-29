@@ -536,3 +536,71 @@ footer {
 .btn-checkout:hover {
     opacity: 0.8;
 }
+
+/* --- CHECKOUT PAGE --- */
+.checkout-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    margin-top: 20px;
+    margin-bottom: 60px;
+}
+
+.checkout-form-section {
+    flex: 2;
+    min-width: 60%;
+}
+
+.checkout-form-section h3 {
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    font-size: 18px;
+    border-bottom: 2px solid #000;
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.form-group input, .form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    outline: none;
+}
+
+.checkout-summary-section {
+    flex: 1;
+    min-width: 300px;
+    background: #fcfcfc;
+    padding: 30px;
+    border: 1px solid #eee;
+    height: fit-content;
+}
+
+.checkout-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 14px;
+    border-bottom: 1px dotted #ccc;
+    padding-bottom: 10px;
+}
+
+.checkout-item-name {
+    flex: 1;
+    padding-right: 15px;
+}
+
+.checkout-item-price {
+    font-weight: bold;
+}
