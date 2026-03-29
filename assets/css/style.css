@@ -280,3 +280,114 @@ footer {
 .pagination { display: flex; justify-content: center; gap: 10px; margin-top: 50px; margin-bottom: 50px; }
 .pagination a, .pagination span { padding: 8px 15px; border: 1px solid #eee; text-decoration: none; color: #000; font-size: 14px; transition: 0.3s; }
 .pagination a:hover, .pagination span.active { background: #000; color: #fff; border-color: #000; }
+
+/* --- PRODUCT DETAIL PAGE --- */
+.product-detail-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 50px;
+    margin-top: 20px;
+    margin-bottom: 60px;
+    align-items: flex-start; /* Giữ cho 2 cột không bị giãn chiều cao bằng nhau */
+}
+
+.product-detail-image {
+    flex: 0 0 calc(45% - 25px); /* Điều chỉnh lại độ rộng cột ảnh */
+    min-width: 300px;
+}
+
+.product-detail-image img {
+    width: 100%;
+    /* UPDATE: Kích thước hình ảnh sao cho vừa màn hình */
+    max-height: 550px; /* Giới hạn chiều cao */
+    object-fit: contain; /* Nhìn thấy toàn bộ ảnh, không bị mất góc */
+    background: #ffffff; /* Nền trắng sạch sẽ */
+    border: 1px solid #eee;
+}
+
+.product-detail-info {
+    flex: 1; /* Cột thông tin chiếm phần còn lại */
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-detail-title {
+    font-size: 32px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.product-detail-price {
+    font-size: 24px;
+    font-weight: bold;
+    color: #000000;
+    margin-bottom: 20px;
+}
+
+.product-detail-desc {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 40px; /* Tăng khoảng cách bottom */
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    padding: 20px 0;
+}
+
+.product-meta {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.product-meta span {
+    font-weight: bold;
+    color: #000;
+}
+
+.add-to-cart-form {
+    /* UPDATE: Di chuyển vị trí, tạo khoảng cách */
+    margin-top: 30px; 
+    margin-bottom: 30px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.add-to-cart-form input[type="number"] {
+    width: 80px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    text-align: center;
+    outline: none;
+}
+
+.btn-add-cart {
+    flex: 1;
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 15px 20px;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-add-cart:hover {
+    opacity: 0.8;
+}
+
+.btn-add-cart:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
