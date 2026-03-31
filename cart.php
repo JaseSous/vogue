@@ -1,7 +1,16 @@
 <?php
 require_once 'includes/header.php';
 
-// Khởi tạo giỏ hàng nếu chưa có
+// BẮT BUỘC ĐĂNG NHẬP ĐỂ DÙNG GIỎ HÀNG
+if (!isset($_SESSION['user_id'])) {
+    echo "<script>
+            alert('Vui lòng đăng nhập tài khoản VOGUE để sử dụng giỏ hàng!'); 
+            window.location.href='login.php';
+          </script>";
+    exit();
+}
+
+// Khởi tạo giỏ hàng nếu chưa có (Chỉ chạy khi đã đăng nhập)
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
