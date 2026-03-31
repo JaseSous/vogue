@@ -709,3 +709,47 @@ footer {
     font-weight: bold;
     color: #d9534f;
 }
+
+/* --- DROPDOWN MENU CHO HEADER --- */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Ẩn menu con mặc định */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #ffffff;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.08);
+    z-index: 100; /* Nổi lên trên tất cả các thành phần khác */
+    top: 100%; 
+    left: 0;
+    border: 1px solid #eeeeee;
+    padding: 10px 0;
+}
+
+/* Style cho các link bên trong dropdown */
+.dropdown-content a {
+    color: #000000;
+    padding: 12px 20px;
+    text-decoration: none;
+    display: block;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: background 0.3s ease;
+}
+
+/* Hiệu ứng hover cho từng dòng danh mục */
+.dropdown-content a:hover {
+    background-color: #f9f9f9;
+    opacity: 1; /* Ghi đè hiệu ứng mờ mặc định của thẻ a */
+    font-weight: bold;
+}
+
+/* Hiển thị dropdown khi rê chuột vào li.dropdown */
+.dropdown:hover .dropdown-content {
+    display: block;
+}

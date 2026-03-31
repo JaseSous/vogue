@@ -21,11 +21,27 @@ require_once 'db.php';
         </div>
 
         <nav>
+            <?php
+            // Lấy danh sách danh mục từ database để hiển thị lên Menu
+            $header_categories = $conn->query("SELECT * FROM categories ORDER BY name ASC");
+            ?>
             <ul class="nav-links">
-                <li><a href="shop.php">Cửa hàng</a></li>
-                <li><a href="#">Nam</a></li>
-                <li><a href="#">Nữ</a></li>
-                <li><a href="#">Phụ kiện</a></li>
+                <li><a href="shop.php">CỬA HÀNG</a></li>
+                
+                <li class="dropdown">
+                    <a href="javascript:void(0)" class="dropbtn">DANH MỤC ▾</a>
+                    <div class="dropdown-content">
+                        <?php if($header_categories && $header_categories->num_rows > 0): ?>
+                            <?php while($h_cat = $header_categories->fetch_assoc()): ?>
+                                <a href="shop.php?category=<?php echo $h_cat['id']; ?>">
+                                    <?php echo htmlspecialchars($h_cat['name']); ?>
+                                </a>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <a href="#">Chưa có danh mục</a>
+                        <?php endif; ?>
+                    </div>
+                </li>
             </ul>
         </nav>
 
