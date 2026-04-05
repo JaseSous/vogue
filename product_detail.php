@@ -123,4 +123,200 @@ document.getElementById('add-to-cart-form').addEventListener('submit', function(
 });
 </script>
 
+<style>
+/* 1. Đổi con trỏ chuột khi chỉ vào ảnh gốc */
+.product-detail-image img {
+    cursor: zoom-in;
+    transition: opacity 0.3s ease;
+}
+.product-detail-image img:hover {
+    opacity: 0.9;
+}
+
+/* 2. Giao diện nền đen của Pop-up */
+#vogue-lightbox {
+    display: none; 
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85); 
+    backdrop-filter: blur(5px);
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* 3. Hiệu ứng mặc định của ảnh trong pop-up */
+#vogue-lightbox .lightbox-content {
+    max-width: 90%;
+    max-height: 90vh;
+    object-fit: contain;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transform: scale(0.8);
+    cursor: zoom-in;
+}
+
+/* Class kích hoạt hiệu ứng mở */
+#vogue-lightbox.show {
+    opacity: 1;
+}
+
+/* Các trạng thái con trỏ chuột khi Zoom và Kéo */
+.lightbox-content.grab { cursor: grab !important; }
+.lightbox-content.grabbing { cursor: grabbing !important; }
+
+/* 4. Nút tắt (X) ở góc phải */
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: 300;
+    cursor: pointer;
+    transition: color 0.3s;
+    z-index: 10001;
+}
+.lightbox-close:hover {
+    color: #d9534f;
+}
+</style>
+
+<div id="vogue-lightbox">
+    <span class="lightbox-close">&times;</span>
+    <img class="lightbox-content" id="vogue-lightbox-img" draggable="false">
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const lightbox = document.getElementById('vogue-lightbox');
+    const lightboxImg = document.getElementById('vogue-lightbox-img');
+    const closeBtn = document.querySelector('.lightbox-close');
+    const productImg = document.querySelector('.product-detail-image img');
+
+    // Các biến lưu trữ trạng thái Toán học của ảnh
+    let scale = 1;
+    let translateX = 0;
+    let translateY = 0;
+    
+    // Biến cho tính năng kéo thả
+    let isDragging = false;
+    let startX, startY;
+
+    // --- 1. MỞ POP-UP ---
+    if(productImg) {
+        productImg.addEventListener('click', function() {
+            lightbox.style.display = "flex"; 
+            lightboxImg.src = this.src;      
+            
+            // Reset các thông số zoom mỗi khi mở lại
+            scale = 1;
+            translateX = 0;
+            translateY = 0;
+            lightboxImg.style.transition = 'transform 0.3s ease'; // Bật hiệu ứng mở mượt
+            lightboxImg.style.transform = `translate(0px, 0px) scale(1)`;
+            lightboxImg.classList.remove('grab', 'grabbing'); // Trả lại con trỏ kính lúp
+
+            setTimeout(() => lightbox.classList.add('show'), 10);
+        });
+    }
+
+    // --- 2. ĐÓNG POP-UP ---
+    function closeLightbox() {
+        lightbox.classList.remove('show'); 
+        lightboxImg.style.transition = 'transform 0.3s ease'; // Bật hiệu ứng thu nhỏ mượt
+        lightboxImg.style.transform = `translate(0px, 0px) scale(0.8)`;
+
+        setTimeout(() => lightbox.style.display = "none", 300);
+    }
+
+    if(closeBtn) closeBtn.addEventListener('click', closeLightbox);
+    
+    // Bấm ra nền đen ngoài ảnh thì đóng
+    lightbox.addEventListener('click', function(e) {
+        if (e.target === lightbox) closeLightbox();
+    });
+
+    // --- 3. LĂN CHUỘT: ZOOM VÀO VỊ TRÍ CON TRỎ ---
+    lightboxImg.addEventListener('wheel', function(e) {
+        e.preventDefault(); // Chặn cuộn trang web
+
+        // Tắt CSS transition để thao tác cuộn mượt tức thì, không bị bóng ma (lag)
+        lightboxImg.style.transition = 'none';
+
+        // Xác định hướng cuộn: Lên (<0) là phóng to, Xuống (>0) là thu nhỏ
+        const zoomDirection = e.deltaY < 0 ? 1 : -1;
+        const zoomSpeed = 0.2; // Độ nhạy của mỗi lần cuộn chuột
+        let newScale = scale + (zoomDirection * zoomSpeed);
+
+        // Giới hạn chỉ cho phép zoom từ 1x (kích thước thật) đến 4x (zoom to 4 lần)
+        newScale = Math.min(Math.max(1, newScale), 4);
+
+        // THUẬT TOÁN BÙ TRỪ TỌA ĐỘ
+        const rect = lightboxImg.getBoundingClientRect();
+        const imgCenterX = rect.left + rect.width / 2; // Tâm X của ảnh
+        const imgCenterY = rect.top + rect.height / 2; // Tâm Y của ảnh
+
+        // Khoảng cách từ vị trí chuột đến tâm ảnh
+        const mouseOffsetX = e.clientX - imgCenterX;
+        const mouseOffsetY = e.clientY - imgCenterY;
+
+        // Tỉ lệ thay đổi giữa scale mới và cũ
+        const ratio = newScale / scale;
+
+        // Dịch chuyển X và Y để điểm dưới chuột giữ nguyên vị trí
+        translateX = translateX - (mouseOffsetX * (ratio - 1));
+        translateY = translateY - (mouseOffsetY * (ratio - 1));
+
+        // Nếu thu nhỏ kịch sàn về 1x, reset ảnh về chính giữa màn hình
+        if (newScale === 1) {
+            translateX = 0;
+            translateY = 0;
+            lightboxImg.classList.remove('grab'); // Trả lại trỏ kính lúp
+        } else {
+            lightboxImg.classList.add('grab'); // Hiện trỏ bàn tay báo hiệu có thể kéo
+        }
+
+        scale = newScale;
+        lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+    });
+
+    // --- 4. BẤM GIỮ CHUỘT: KÉO ẢNH ĐỂ XEM QUANH (PAN) ---
+    lightboxImg.addEventListener('mousedown', function(e) {
+        // Chỉ cho phép kéo khi ảnh đang được phóng to
+        if (scale > 1) {
+            e.preventDefault();
+            isDragging = true;
+            lightboxImg.classList.replace('grab', 'grabbing'); // Bàn tay nắm lại
+            
+            // Lưu tọa độ chuột ban đầu trừ đi tọa độ ảnh đang bị lệch
+            startX = e.clientX - translateX;
+            startY = e.clientY - translateY;
+        }
+    });
+
+    // --- 5. RÊ CHUỘT: DỊCH CHUYỂN ẢNH ---
+    window.addEventListener('mousemove', function(e) {
+        if (isDragging && scale > 1) {
+            lightboxImg.style.transition = 'none';
+            // Cập nhật tọa độ mới
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            lightboxImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+        }
+    });
+
+    // --- 6. NHẢ CHUỘT: KẾT THÚC KÉO ---
+    window.addEventListener('mouseup', function() {
+        if (isDragging) {
+            isDragging = false;
+            lightboxImg.classList.replace('grabbing', 'grab'); // Bàn tay mở ra
+        }
+    });
+});
+</script>
 <?php require_once 'includes/footer.php'; ?>
