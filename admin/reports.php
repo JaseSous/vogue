@@ -41,17 +41,20 @@ $categories = $conn->query("SELECT * FROM categories");
         </thead>
         <tbody>
             <?php
-            // Truy vấn lấy tổng tồn (Số lượng ban đầu + tổng số lượng còn lại của các lô)
+            // SQL Chuẩn Bình quân gia quyền (Lấy tổng tồn kho thực tế)
             $warn_sql = "
                 SELECT p.code, p.name, 
-                       (p.initial_quantity + COALESCE((SELECT SUM(quantity_remaining) FROM import_batches WHERE product_id = p.id), 0)) as total_stock
+                       (p.initial_quantity 
+                        + COALESCE((SELECT SUM(quantity_imported) FROM import_batches ib JOIN import_receipts ir ON ib.receipt_id = ir.id WHERE ir.status = 'completed' AND ib.product_id = p.id), 0)
+                        - COALESCE((SELECT SUM(quantity) FROM order_details od JOIN orders o ON od.order_id = o.id WHERE o.status != 'cancelled' AND od.product_id = p.id), 0)
+                       ) as total_stock
                 FROM products p
                 WHERE p.status != 'deleted'
                 HAVING total_stock <= $threshold
                 ORDER BY total_stock ASC
             ";
             $warnings = $conn->query($warn_sql);
-            if ($warnings->num_rows > 0):
+            if ($warnings && $warnings->num_rows > 0):
                 while($w = $warnings->fetch_assoc()):
             ?>
             <tr>
@@ -67,7 +70,7 @@ $categories = $conn->query("SELECT * FROM categories");
 </div>
 
 <div style="background: #fff; padding: 20px; border: 1px solid #ddd; border-top: 3px solid #5cb85c; margin-bottom: 30px;">
-    <h3 style="margin-bottom: 15px; color: #5cb85c;">2. Báo cáo Nhập - Xuất (Theo lô)</h3>
+    <h3 style="margin-bottom: 15px; color: #5cb85c;">2. Báo cáo Nhập - Xuất (Tổng hợp)</h3>
     <form action="reports.php" method="GET" style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
         <label style="font-size: 14px; font-weight: bold;">Từ ngày:</label>
         <input type="date" name="from_date" value="<?php echo $from_date; ?>" style="padding: 5px; border: 1px solid #ccc;">
@@ -85,36 +88,36 @@ $categories = $conn->query("SELECT * FROM categories");
     <table style="width: 100%; border-collapse: collapse;">
         <thead>
             <tr style="background: #f9f9f9;">
-                <th style="padding: 8px; border: 1px solid #eee;">Sản Phẩm</th>
-                <th style="padding: 8px; border: 1px solid #eee;">Mã Lô (Phiếu)</th>
-                <th style="padding: 8px; border: 1px solid #eee; text-align: right; color: #5cb85c;">SL Nhập Trong Kỳ</th>
-                <th style="padding: 8px; border: 1px solid #eee; text-align: right; color: #d9534f;">SL Xuất Trong Kỳ</th>
+                <th style="padding: 8px; border: 1px solid #eee;">Mã SP</th>
+                <th style="padding: 8px; border: 1px solid #eee;">Tên Sản Phẩm</th>
+                <th style="padding: 8px; border: 1px solid #eee; text-align: right; color: #5cb85c;">Tổng Nhập Trong Kỳ</th>
+                <th style="padding: 8px; border: 1px solid #eee; text-align: right; color: #d9534f;">Tổng Xuất Trong Kỳ</th>
             </tr>
         </thead>
         <tbody>
             <?php
-            // Logic: Lấy SL nhập theo ngày phiếu nhập, lấy SL xuất theo ngày đơn hàng (đã chốt)
             $from_dt = $from_date . " 00:00:00";
             $to_dt = $to_date . " 23:59:59";
             
+            // Logic: Lấy tổng SL nhập và xuất của từng sản phẩm trong khoảng thời gian
             $io_sql = "
-                SELECT p.code, p.name, b.id as batch_id, r.id as receipt_id,
-                       (CASE WHEN r.import_date BETWEEN '$from_dt' AND '$to_dt' THEN b.quantity_imported ELSE 0 END) as imported_qty,
+                SELECT p.code, p.name,
+                       COALESCE((SELECT SUM(ib.quantity_imported) FROM import_batches ib JOIN import_receipts ir ON ib.receipt_id = ir.id 
+                                 WHERE ib.product_id = p.id AND ir.status = 'completed' AND ir.import_date BETWEEN '$from_dt' AND '$to_dt'), 0) as imported_qty,
                        COALESCE((SELECT SUM(od.quantity) FROM order_details od JOIN orders o ON od.order_id = o.id 
-                                 WHERE od.batch_id = b.id AND o.status IN ('confirmed', 'successful') AND o.order_date BETWEEN '$from_dt' AND '$to_dt'), 0) as exported_qty
-                FROM import_batches b
-                JOIN products p ON b.product_id = p.id
-                JOIN import_receipts r ON b.receipt_id = r.id
+                                 WHERE od.product_id = p.id AND o.status != 'cancelled' AND o.order_date BETWEEN '$from_dt' AND '$to_dt'), 0) as exported_qty
+                FROM products p
+                WHERE p.status != 'deleted'
                 HAVING imported_qty > 0 OR exported_qty > 0
-                ORDER BY p.code ASC, b.id ASC
+                ORDER BY p.code ASC
             ";
             $io_report = $conn->query($io_sql);
-            if ($io_report->num_rows > 0):
+            if ($io_report && $io_report->num_rows > 0):
                 while($io = $io_report->fetch_assoc()):
             ?>
             <tr>
-                <td style="padding: 8px; border: 1px solid #eee;">[<?php echo $io['code']; ?>] <?php echo htmlspecialchars($io['name']); ?></td>
-                <td style="padding: 8px; border: 1px solid #eee;">Lô #<?php echo $io['batch_id']; ?> (PN-<?php echo $io['receipt_id']; ?>)</td>
+                <td style="padding: 8px; border: 1px solid #eee; font-weight: bold;"><?php echo $io['code']; ?></td>
+                <td style="padding: 8px; border: 1px solid #eee;"><?php echo htmlspecialchars($io['name']); ?></td>
                 <td style="padding: 8px; border: 1px solid #eee; text-align: right; color: #5cb85c; font-weight: bold;"><?php echo $io['imported_qty']; ?></td>
                 <td style="padding: 8px; border: 1px solid #eee; text-align: right; color: #d9534f; font-weight: bold;"><?php echo $io['exported_qty']; ?></td>
             </tr>
@@ -126,7 +129,7 @@ $categories = $conn->query("SELECT * FROM categories");
 </div>
 
 <div style="background: #fff; padding: 20px; border: 1px solid #ddd; border-top: 3px solid #f0ad4e; margin-bottom: 30px;">
-    <h3 style="margin-bottom: 15px; color: #f0ad4e;">3. Tra cứu Tồn kho tại một thời điểm (Phân tách theo lô)</h3>
+    <h3 style="margin-bottom: 15px; color: #f0ad4e;">3. Tra cứu Tồn kho tại một thời điểm</h3>
     <form action="reports.php" method="GET" style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
         
         <label style="font-size: 14px; font-weight: bold;">Loại sản phẩm:</label>
@@ -152,45 +155,45 @@ $categories = $conn->query("SELECT * FROM categories");
             <tr style="background: #f9f9f9;">
                 <th style="padding: 8px; border: 1px solid #eee;">Mã SP</th>
                 <th style="padding: 8px; border: 1px solid #eee;">Tên Sản Phẩm</th>
-                <th style="padding: 8px; border: 1px solid #eee;">Mã Lô</th>
-                <th style="padding: 8px; border: 1px solid #eee; text-align: right;">Đã Nhập (Tính đến T)</th>
-                <th style="padding: 8px; border: 1px solid #eee; text-align: right;">Đã Xuất (Tính đến T)</th>
-                <th style="padding: 8px; border: 1px solid #eee; text-align: right; color: #000;">Tồn Kho (Lô) tại T</th>
+                <th style="padding: 8px; border: 1px solid #eee; text-align: right;">Tồn Ban Đầu</th>
+                <th style="padding: 8px; border: 1px solid #eee; text-align: right;">Tổng Nhập (Đến T)</th>
+                <th style="padding: 8px; border: 1px solid #eee; text-align: right;">Tổng Xuất (Đến T)</th>
+                <th style="padding: 8px; border: 1px solid #eee; text-align: right; color: #000;">Tồn Kho Tại T</th>
             </tr>
         </thead>
         <tbody>
             <?php
             if ($cat_id > 0) {
-                // Logic: Tồn tại thời điểm T = SL Nhập (của các phiếu có ngày <= T) trừ SL Xuất (của các đơn có ngày <= T)
-                $target_dt = str_replace('T', ' ', $target_time) . ":59"; // Format lại chuẩn datetime SQL
+                $target_dt = str_replace('T', ' ', $target_time) . ":59";
                 
+                // Logic: Tính tổng Nhập, tổng Xuất trước thời điểm T
                 $stock_sql = "
-                    SELECT p.code, p.name, b.id as batch_id,
-                           b.quantity_imported,
+                    SELECT p.code, p.name, p.initial_quantity,
+                           COALESCE((SELECT SUM(ib.quantity_imported) FROM import_batches ib JOIN import_receipts ir ON ib.receipt_id = ir.id 
+                                     WHERE ib.product_id = p.id AND ir.status = 'completed' AND ir.import_date <= '$target_dt'), 0) as imported_qty,
                            COALESCE((SELECT SUM(od.quantity) FROM order_details od JOIN orders o ON od.order_id = o.id 
-                                     WHERE od.batch_id = b.id AND o.status IN ('confirmed', 'successful') AND o.order_date <= '$target_dt'), 0) as exported_qty
-                    FROM import_batches b
-                    JOIN products p ON b.product_id = p.id
-                    JOIN import_receipts r ON b.receipt_id = r.id
-                    WHERE p.category_id = $cat_id AND r.import_date <= '$target_dt' AND r.status = 'completed'
-                    ORDER BY p.code ASC, b.id ASC
+                                     WHERE od.product_id = p.id AND o.status != 'cancelled' AND o.order_date <= '$target_dt'), 0) as exported_qty
+                    FROM products p
+                    WHERE p.category_id = $cat_id AND p.status != 'deleted'
+                    ORDER BY p.code ASC
                 ";
                 $stock_report = $conn->query($stock_sql);
                 
-                if ($stock_report->num_rows > 0):
+                if ($stock_report && $stock_report->num_rows > 0):
                     while($st = $stock_report->fetch_assoc()):
-                        $stock_at_time = $st['quantity_imported'] - $st['exported_qty'];
+                        // Tồn tại T = Ban đầu + Nhập - Xuất
+                        $stock_at_time = $st['initial_quantity'] + $st['imported_qty'] - $st['exported_qty'];
                 ?>
                 <tr>
-                    <td style="padding: 8px; border: 1px solid #eee;"><?php echo $st['code']; ?></td>
+                    <td style="padding: 8px; border: 1px solid #eee; font-weight: bold;"><?php echo $st['code']; ?></td>
                     <td style="padding: 8px; border: 1px solid #eee;"><?php echo htmlspecialchars($st['name']); ?></td>
-                    <td style="padding: 8px; border: 1px solid #eee;">Lô #<?php echo $st['batch_id']; ?></td>
-                    <td style="padding: 8px; border: 1px solid #eee; text-align: right;"><?php echo $st['quantity_imported']; ?></td>
+                    <td style="padding: 8px; border: 1px solid #eee; text-align: right;"><?php echo $st['initial_quantity']; ?></td>
+                    <td style="padding: 8px; border: 1px solid #eee; text-align: right;"><?php echo $st['imported_qty']; ?></td>
                     <td style="padding: 8px; border: 1px solid #eee; text-align: right;"><?php echo $st['exported_qty']; ?></td>
                     <td style="padding: 8px; border: 1px solid #eee; text-align: right; font-weight: bold; font-size: 15px;"><?php echo $stock_at_time; ?></td>
                 </tr>
                 <?php endwhile; else: ?>
-                <tr><td colspan="6" style="padding: 8px; text-align: center;">Không có lô hàng nào của danh mục này được nhập trước thời điểm đã chọn.</td></tr>
+                <tr><td colspan="6" style="padding: 8px; text-align: center;">Không có dữ liệu cho danh mục này.</td></tr>
                 <?php endif; 
             } else {
                 echo '<tr><td colspan="6" style="padding: 20px; text-align: center; color: #666;">Vui lòng chọn loại sản phẩm và ấn Tra Cứu để xem kết quả.</td></tr>';
