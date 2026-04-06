@@ -43,8 +43,56 @@ if (!$is_completed && isset($_GET['delete_batch'])) {
     exit();
 }
 
-// --- XỬ LÝ CHỐT/HOÀN THÀNH PHIẾU ---
+// --- XỬ LÝ CHỐT/HOÀN THÀNH PHIẾU & TÍNH BÌNH QUÂN GIA QUYỀN ---
 if (!$is_completed && $_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['complete_receipt'])) {
+    
+    // 1. Lấy danh sách các lô hàng có trong phiếu nhập này
+    $batches = $conn->query("SELECT product_id, quantity_imported, import_price FROM import_batches WHERE receipt_id = $receipt_id");
+    
+    while ($b = $batches->fetch_assoc()) {
+        $pid = $b['product_id'];
+        $qty_new = (int)$b['quantity_imported'];
+        $price_new = (float)$b['import_price'];
+        
+        // 2. Tính TỒN KHO HIỆN TẠI của sản phẩm (trước khi duyệt phiếu này)
+        // Công thức: Tồn = SL ban đầu + Tổng Nhập (đã duyệt) - Tổng Xuất (đơn hàng thành công)
+        $stock_query = $conn->query("
+            SELECT 
+                p.initial_quantity,
+                p.profit_margin,
+                p.cost_price,
+                (SELECT COALESCE(SUM(quantity_imported), 0) FROM import_batches ib JOIN import_receipts ir ON ib.receipt_id = ir.id WHERE ir.status = 'completed' AND ib.product_id = p.id) as total_imported,
+                (SELECT COALESCE(SUM(quantity), 0) FROM order_details od JOIN orders o ON od.order_id = o.id WHERE o.status != 'cancelled' AND od.product_id = p.id) as total_sold
+            FROM products p 
+            WHERE p.id = $pid
+        ");
+        
+        if ($stock_query->num_rows > 0) {
+            $p_data = $stock_query->fetch_assoc();
+            
+            // Lấy Tồn kho và Giá vốn cũ
+            $current_stock = $p_data['initial_quantity'] + $p_data['total_imported'] - $p_data['total_sold'];
+            if ($current_stock < 0) $current_stock = 0; // Đảm bảo không âm
+            $current_cost = (float)$p_data['cost_price'];
+            
+            // 3. ÁP DỤNG CÔNG THỨC BÌNH QUÂN GIA QUYỀN TỪ BIÊN BẢN
+            // Giá vốn mới = (Tồn * Giá vốn cũ + Nhập mới * Giá nhập mới) / (Tồn + Nhập mới)
+            $total_qty_after = $current_stock + $qty_new;
+            $new_cost_price = (($current_stock * $current_cost) + ($qty_new * $price_new)) / $total_qty_after;
+            
+            // 4. CẬP NHẬT GIÁ BÁN MỚI
+            // Giá bán = Giá vốn mới * (100% + % Lợi nhuận)
+            $profit_margin = (float)$p_data['profit_margin'];
+            $new_selling_price = $new_cost_price * (1 + ($profit_margin / 100));
+            
+            // 5. Lưu Giá vốn và Giá bán mới vào bảng products
+            $stmt_update = $conn->prepare("UPDATE products SET cost_price = ?, suggested_price = ? WHERE id = ?");
+            $stmt_update->bind_param("ddi", $new_cost_price, $new_selling_price, $pid);
+            $stmt_update->execute();
+        }
+    }
+    
+    // 6. Cuối cùng, cập nhật trạng thái phiếu nhập thành 'completed'
     $conn->query("UPDATE import_receipts SET status = 'completed' WHERE id = $receipt_id");
     header("Location: edit_import.php?id=$receipt_id");
     exit();

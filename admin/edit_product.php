@@ -19,7 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_product'])) {
     $description = trim($_POST['description']);
     $unit = trim($_POST['unit']);
     $initial_quantity = (int)$_POST['initial_quantity'];
-    $suggested_price = (float)$_POST['suggested_price'];
+    $cost_price = (float)$_POST['cost_price'];
+    $selling_price = $cost_price * (1 + ($profit_margin / 100)); // Tự động tính giá bán
     $profit_margin = (float)$_POST['profit_margin'];
     $status = $_POST['status']; // Đặc biệt chú ý cập nhật hiện trạng 
     $current_image = $_POST['current_image'];
@@ -62,8 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_product'])) {
             $message = "<p style='color: #d9534f; background: #fdf7f7; padding: 10px; border: 1px solid #d9534f;'>Mã sản phẩm đã tồn tại ở sản phẩm khác!</p>";
         } else {
             // Cập nhật CSDL
-            $stmt = $conn->prepare("UPDATE products SET code=?, name=?, category_id=?, supplier_id=?, description=?, unit=?, initial_quantity=?, image=?, suggested_price=?, profit_margin=?, status=? WHERE id=?");
-            $stmt->bind_param("ssiissisddsi", $code, $name, $category_id, $supplier_id, $description, $unit, $initial_quantity, $image_path, $suggested_price, $profit_margin, $status, $product_id);
+            // Cập nhật CSDL
+            $stmt = $conn->prepare("UPDATE products SET code=?, name=?, category_id=?, supplier_id=?, description=?, unit=?, initial_quantity=?, image=?, cost_price=?, selling_price=?, profit_margin=?, status=? WHERE id=?");
+            $stmt->bind_param("ssiissisdddsi", $code, $name, $category_id, $supplier_id, $description, $unit, $initial_quantity, $image_path, $cost_price, $selling_price, $profit_margin, $status, $product_id);
             
             if ($stmt->execute()) {
                 $message = "<p style='color: #5cb85c; background: #f4fdf4; padding: 10px; border: 1px solid #5cb85c;'>Cập nhật sản phẩm thành công!</p>";
@@ -132,8 +134,8 @@ $suppliers = $conn->query("SELECT * FROM suppliers");
             <input type="number" name="initial_quantity" id="e_qty" min="0" value="<?php echo $p['initial_quantity']; ?>" style="width: 100%; padding: 8px; border: 1px solid #ccc;" readonly title="Số lượng ban đầu thường không nên sửa sau khi khởi tạo. Cần nhập hàng thì dùng tính năng Phiếu Nhập Kho.">
         </div>
         <div>
-            <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">Giá bán đề xuất (VNĐ) *</label>
-            <input type="number" name="suggested_price" id="e_price" min="0" value="<?php echo $p['suggested_price']; ?>" style="width: 100%; padding: 8px; border: 1px solid #ccc;">
+            <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">Giá vốn (VNĐ) *</label>
+            <input type="number" name="cost_price" id="e_cost" min="0" value="<?php echo isset($p['cost_price']) ? $p['cost_price'] : 0; ?>" style="width: 100%; padding: 8px; border: 1px solid #ccc;">
         </div>
         <div>
             <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">Tỉ lệ lợi nhuận (%) *</label>
@@ -188,21 +190,21 @@ document.getElementById('form-edit-product').addEventListener('submit', function
     let code = document.getElementById('e_code').value.trim();
     let name = document.getElementById('e_name').value.trim();
     let unit = document.getElementById('e_unit').value.trim();
-    let price = document.getElementById('e_price').value.trim();
+    let cost = document.getElementById('e_cost').value.trim();
     let margin = document.getElementById('e_margin').value.trim();
     let errorP = document.getElementById('js-error-edit');
     
-    if (code === '' || name === '' || unit === '' || price === '' || margin === '') {
+    if (code === '' || name === '' || unit === '' || cost === '' || margin === '') {
         e.preventDefault(); 
         errorP.style.display = 'block';
         errorP.innerText = 'Vui lòng điền đầy đủ các thông tin bắt buộc (*)!';
         return;
     }
     
-    if (parseFloat(price) < 0 || parseFloat(margin) < 0) {
+    if (parseFloat(cost) < 0 || parseFloat(margin) < 0) {
         e.preventDefault();
         errorP.style.display = 'block';
-        errorP.innerText = 'Giá bán và Tỉ lệ lợi nhuận không được là số âm!';
+        errorP.innerText = 'Giá vốn và Tỉ lệ lợi nhuận không được là số âm!';
         return;
     }
     

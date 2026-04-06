@@ -121,7 +121,7 @@ if (isset($_SESSION['cart_msg'])) {
                                              WHERE b.product_id = p.id AND b.quantity_remaining > 0 AND r.status = 'completed' 
                                              ORDER BY r.import_date ASC, b.id ASC LIMIT 1)
                                         , 0) * (1 + p.profit_margin / 100), 
-                                        p.suggested_price
+                                        p.selling_price
                                     ) as final_price
                                     FROM products p
                                     WHERE p.id IN ($product_ids)";

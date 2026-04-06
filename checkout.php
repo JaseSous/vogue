@@ -49,10 +49,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['place_order'])) {
         // BƯỚC 2: THUẬT TOÁN FIFO (QUAN TRỌNG NHẤT)
         foreach ($_SESSION['cart'] as $product_id => $qty_needed) {
             // Lấy thông tin cơ bản của SP (để tính % lợi nhuận và giá đề xuất)
-            $p_query = $conn->query("SELECT profit_margin, suggested_price FROM products WHERE id = $product_id");
+            $p_query = $conn->query("SELECT profit_margin, selling_price FROM products WHERE id = $product_id");
             $p_info = $p_query->fetch_assoc();
             $margin = $p_info['profit_margin'];
-            $suggested = $p_info['suggested_price'];
+            $suggested = $p_info['selling_price'];
 
             // Vòng lặp tìm lô hàng cũ nhất còn tồn để trừ lùi
             while ($qty_needed > 0) {
@@ -194,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['place_order'])) {
                                  WHERE b.product_id = p.id AND b.quantity_remaining > 0 AND r.status = 'completed' 
                                  ORDER BY r.import_date ASC, b.id ASC LIMIT 1)
                             , 0) * (1 + p.profit_margin / 100), 
-                            p.suggested_price
+                            p.selling_price
                         ) as final_price
                         FROM products p WHERE p.id IN ($product_ids)";
                 

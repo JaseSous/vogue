@@ -23,7 +23,7 @@ $sql = "SELECT p.*, c.name as category_name,
                  WHERE b.product_id = p.id AND b.quantity_remaining > 0 AND r.status = 'completed' 
                  ORDER BY r.import_date ASC, b.id ASC LIMIT 1)
             , 0) * (1 + p.profit_margin / 100), 
-            p.suggested_price
+            p.selling_price
         ) as final_price
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id

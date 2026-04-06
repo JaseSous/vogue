@@ -11,28 +11,29 @@ $suppliers = $conn->query("SELECT * FROM suppliers");
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
     $code = trim($_POST['code']);
     $name = trim($_POST['name']);
-    $category_id = $_POST['category_id'];
-    $supplier_id = $_POST['supplier_id'];
+    $category_id = (int)$_POST['category_id'];
+    $supplier_id = (int)$_POST['supplier_id'];
     $description = trim($_POST['description']);
     $unit = trim($_POST['unit']);
-    $initial_quantity = (int) $_POST['initial_quantity'];
-    $suggested_price = (float) $_POST['suggested_price'];
-    $profit_margin = (float) $_POST['profit_margin'];
+    $initial_quantity = (int)$_POST['initial_quantity'];
+    
+    // Lấy Giá vốn, Lợi nhuận và tự động tính Giá bán
+    $cost_price = (float)$_POST['cost_price'];
+    $profit_margin = (float)$_POST['profit_margin'];
+    $selling_price = $cost_price * (1 + ($profit_margin / 100));
+    
     $status = $_POST['status'];
 
     // Xử lý Upload Ảnh
     $image_path = '';
     if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
         $target_dir = "../assets/images/products/";
-        // Tạo tên file ngẫu nhiên để không bị trùng
         $file_name = time() . '_' . basename($_FILES["image"]["name"]);
         $target_file = $target_dir . $file_name;
         $imageFileType = strtolower(pathinfo($target_file, PATHINFO_EXTENSION));
 
-        // Kiểm tra định dạng ảnh
-        if (in_array($imageFileType, ['jpg', 'png', 'jpeg', 'gif', 'webp'])) {
+        if(in_array($imageFileType, ['jpg', 'png', 'jpeg', 'gif', 'webp'])) {
             if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-                // Lưu đường dẫn tương đối vào DB
                 $image_path = "assets/images/products/" . $file_name;
             }
         } else {
@@ -40,15 +41,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
         }
     }
 
-    if (empty($message)) {
+    if(empty($message)) {
         // Kiểm tra trùng Mã sản phẩm
         $check = $conn->query("SELECT id FROM products WHERE code = '$code'");
         if ($check->num_rows > 0) {
             $message = "<p style='color: #d9534f; background: #fdf7f7; padding: 10px; border: 1px solid #d9534f;'>Mã sản phẩm đã tồn tại!</p>";
         } else {
-            $stmt = $conn->prepare("INSERT INTO products (code, name, category_id, supplier_id, description, unit, initial_quantity, image, suggested_price, profit_margin, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssiissisdds", $code, $name, $category_id, $supplier_id, $description, $unit, $initial_quantity, $image_path, $suggested_price, $profit_margin, $status);
-
+            // Cập nhật CSDL với Giá vốn và Giá bán
+            $stmt = $conn->prepare("INSERT INTO products (code, name, category_id, supplier_id, description, unit, initial_quantity, cost_price, selling_price, profit_margin, image, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            
+            // ssiissidddss = 2 string, 2 int, 2 string, 1 int, 3 double, 2 string
+            $stmt->bind_param("ssiissidddss", $code, $name, $category_id, $supplier_id, $description, $unit, $initial_quantity, $cost_price, $selling_price, $profit_margin, $image_path, $status);
+            
             if ($stmt->execute()) {
                 $message = "<p style='color: #5cb85c; background: #f4fdf4; padding: 10px; border: 1px solid #5cb85c;'>Thêm sản phẩm thành công!</p>";
             } else {
@@ -122,9 +126,9 @@ $products = $conn->query("SELECT p.*, c.name as category_name FROM products p LE
                 style="width: 100%; padding: 8px; border: 1px solid #ccc;">
         </div>
         <div>
-            <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">Giá bán đề xuất (VNĐ)
+            <label style="display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px;">Giá vốn (VNĐ)
                 *</label>
-            <input type="number" name="suggested_price" id="p_price" min="0"
+            <input type="number" name="cost_price" id="p_cost" min="0"
                 style="width: 100%; padding: 8px; border: 1px solid #ccc;">
         </div>
         <div>
@@ -192,7 +196,7 @@ $products = $conn->query("SELECT p.*, c.name as category_name FROM products p LE
                 <th>Tên Sản Phẩm</th>
                 <th>Danh Mục</th>
                 <th>SL Đầu</th>
-                <th>Giá Đề Xuất</th>
+                <th>Giá Bán</th>
                 <th>Trạng thái</th>
                 <th>Thao tác</th>
             </tr>
@@ -216,7 +220,7 @@ $products = $conn->query("SELECT p.*, c.name as category_name FROM products p LE
                         <td><?php echo htmlspecialchars($row['category_name']); ?></td>
                         <td style="text-align: right;"><?php echo $row['initial_quantity']; ?>         <?php echo $row['unit']; ?></td>
                         <td style="text-align: right; font-weight: bold; color: #d9534f;">
-                            <?php echo number_format($row['suggested_price'], 0, ',', '.'); ?>đ
+                            <?php echo number_format($row['selling_price'], 0, ',', '.'); ?>đ
                         </td>
                         <td>
                             <?php if ($row['status'] == 'visible')
@@ -261,7 +265,7 @@ $products = $conn->query("SELECT p.*, c.name as category_name FROM products p LE
         if (parseFloat(price) < 0 || parseFloat(margin) < 0) {
             e.preventDefault();
             errorP.style.display = 'block';
-            errorP.innerText = 'Giá bán và Tỉ lệ lợi nhuận không được là số âm!';
+            errorP.innerText = 'Giá vốn và Tỉ lệ lợi nhuận không được là số âm!';
             return;
         }
 
