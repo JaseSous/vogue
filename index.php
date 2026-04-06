@@ -1,21 +1,11 @@
 <?php
 require_once 'includes/header.php';
 
-// Truy vấn lấy 4 sản phẩm mới nhất (có tính giá bán FIFO) - Giữ nguyên logic cũ
-$sql = "SELECT p.*, 
-        GREATEST(
-            COALESCE(
-                (SELECT b.import_price 
-                 FROM import_batches b 
-                 JOIN import_receipts r ON b.receipt_id = r.id 
-                 WHERE b.product_id = p.id AND b.quantity_remaining > 0 AND r.status = 'completed' 
-                 ORDER BY r.import_date ASC, b.id ASC LIMIT 1)
-            , 0) * (1 + p.profit_margin / 100), 
-            p.suggested_price
-        ) as final_price
-        FROM products p
-        WHERE p.status = 'visible'
-        ORDER BY p.id DESC 
+// Truy vấn lấy 4 sản phẩm mới nhất
+$sql = "SELECT *, selling_price as final_price 
+        FROM products 
+        WHERE status = 'visible' 
+        ORDER BY id DESC 
         LIMIT 4";
 
 $latest_products = $conn->query($sql);
