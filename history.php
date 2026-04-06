@@ -83,7 +83,11 @@ function getStatusFormat($status) {
                             <div class="shipping-info">
                                 <strong>Giao đến:</strong> <?php echo htmlspecialchars($order['shipping_name']); ?> - <?php echo htmlspecialchars($order['shipping_phone']); ?><br>
                                 <?php echo htmlspecialchars($order['shipping_address']); ?>, <?php echo htmlspecialchars($order['shipping_ward']); ?>, <?php echo htmlspecialchars($order['shipping_district']); ?>, <?php echo htmlspecialchars($order['shipping_city']); ?><br>
-                                <span style="font-size: 12px; color: #888;">Thanh toán: <?php echo ($order['payment_method'] == 'cash') ? 'Tiền mặt (COD)' : 'Chuyển khoản'; ?></span>
+                                <span style="font-size: 12px; color: #888;">Thanh toán: <?php 
+                                    if($order['payment_method'] == 'cash') echo 'Tiền mặt (COD)'; 
+                                    elseif($order['payment_method'] == 'transfer') echo 'Chuyển khoản ngân hàng'; 
+                                    else echo 'Thanh toán trực tuyến'; 
+                                ?></span>
                             </div>
                             <div style="text-align: right;">
                                 <div style="font-size: 13px; color: #666; margin-bottom: 5px;">Tổng cộng:</div>

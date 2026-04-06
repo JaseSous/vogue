@@ -149,7 +149,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['place_order'])) {
                 <div class="form-group">
                     <label style="font-weight: normal; font-size: 15px; cursor: pointer;">
                         <input type="radio" name="payment_method" value="transfer" style="width: auto; margin-right: 10px;"> 
-                        Chuyển khoản ngân hàng (Sẽ có nhân viên gọi xác nhận)
+                        Chuyển khoản ngân hàng
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label style="font-weight: normal; font-size: 15px; cursor: pointer;">
+                        <input type="radio" name="payment_method" value="online" style="width: auto; margin-right: 10px;"> 
+                        Thanh toán trực tuyến (VNPAY / Momo / Thẻ tín dụng)
                     </label>
                 </div>
                 

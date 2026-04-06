@@ -58,7 +58,11 @@ $order_details = $stmt_details->get_result();
                 <h4 style="margin-top: 0; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 8px;">Chi tiết hóa đơn</h4>
                 <p style="margin: 5px 0; font-size: 14px;"><strong>Mã đơn hàng:</strong> #<?php echo $order_info['id']; ?></p>
                 <p style="margin: 5px 0; font-size: 14px;"><strong>Ngày đặt:</strong> <?php echo date('d/m/Y H:i', strtotime($order_info['order_date'])); ?></p>
-                <p style="margin: 5px 0; font-size: 14px;"><strong>Thanh toán:</strong> <?php echo ($order_info['payment_method'] == 'cash') ? 'Tiền mặt (COD)' : 'Chuyển khoản'; ?></p>
+                <p style="margin: 5px 0; font-size: 14px;"><strong>Thanh toán:</strong> <?php 
+                    if($order_info['payment_method'] == 'cash') echo 'Tiền mặt (COD)'; 
+                    elseif($order_info['payment_method'] == 'transfer') echo 'Chuyển khoản ngân hàng'; 
+                    else echo 'Thanh toán trực tuyến (VNPAY/Momo)'; 
+                ?></p>
             </div>
         </div>
 
