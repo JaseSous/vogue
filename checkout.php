@@ -16,8 +16,12 @@ if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Lấy thông tin user để điền sẵn vào form
-$user_query = $conn->query("SELECT * FROM users WHERE id = $user_id");
+// Lấy thông tin user VÀ địa chỉ mặc định để điền sẵn vào form
+$sql_user_info = "SELECT u.fullname, u.phone, a.address_line, a.ward, a.district, a.city 
+                  FROM users u 
+                  LEFT JOIN addresses a ON u.id = a.user_id AND a.is_default = 1 
+                  WHERE u.id = $user_id";
+$user_query = $conn->query($sql_user_info);
 $user_info = $user_query->fetch_assoc();
 
 // 2. XỬ LÝ ĐẶT HÀNG (KHI BẤM SUBMIT)
@@ -113,21 +117,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['place_order'])) {
                 
                 <div class="form-group">
                     <label>Địa chỉ nhà / Tên đường *</label>
-                    <input type="text" name="shipping_address" id="c_address" placeholder="Ví dụ: Số 123 Đường ABC...">
+                    <input type="text" name="shipping_address" id="c_address" value="<?php echo htmlspecialchars($user_info['address_line'] ?? ''); ?>" placeholder="Ví dụ: Số 123 Đường ABC...">
                 </div>
 
                 <div style="display: flex; gap: 20px;">
                     <div class="form-group" style="flex: 1;">
                         <label>Phường / Xã *</label>
-                        <input type="text" name="shipping_ward" id="c_ward" placeholder="Nhập phường/xã">
+                        <input type="text" name="shipping_ward" id="c_ward" value="<?php echo htmlspecialchars($user_info['ward'] ?? ''); ?>" placeholder="Nhập phường/xã">
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label>Quận / Huyện *</label>
-                        <input type="text" name="shipping_district" id="c_district" placeholder="Nhập quận/huyện">
+                        <input type="text" name="shipping_district" id="c_district" value="<?php echo htmlspecialchars($user_info['district'] ?? ''); ?>" placeholder="Nhập quận/huyện">
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label>Tỉnh / Thành phố *</label>
-                        <input type="text" name="shipping_city" id="c_city" placeholder="Nhập tỉnh/thành">
+                        <input type="text" name="shipping_city" id="c_city" value="<?php echo htmlspecialchars($user_info['city'] ?? ''); ?>" placeholder="Nhập tỉnh/thành">
                     </div>
                 </div>
 
