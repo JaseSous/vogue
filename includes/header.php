@@ -72,6 +72,23 @@ require_once 'db.php';
             color: #999;
             transition: color 0.3s ease 0.4s;
         }
+
+        /* HIỆU ỨNG DROPDOWN MENU USER */
+        .user-dropdown-content a:hover { background-color: #f9f9f9; }
+
+        /* Hiệu ứng hover in đậm cho menu Danh mục và menu User */
+        .dropdown-content a:hover, 
+        .user-dropdown-content a:hover {
+            font-weight: bold;
+            color: #000 !important;
+            background-color: #f9f9f9;
+            opacity: 1 !important;
+        }
+
+        /* Hiệu ứng hover nút logout */
+        .user-dropdown-content a[href="logout.php"]:hover {
+            color: #d9534f !important;
+        }
     </style>
 </head>
 <body>
@@ -117,26 +134,29 @@ require_once 'db.php';
                 </form>
             </div>
             
-            <?php if(isset($_SESSION['user_id'])): ?>
-                <span style="font-size: 13px; font-weight: bold; text-transform: uppercase;">
-                    Chào, <?php 
-                        $name_parts = explode(' ', trim($_SESSION['user_fullname']));
-                        echo htmlspecialchars(end($name_parts)); 
-                    ?>
-                </span>
-                
-                <a href="history.php" aria-label="Lịch sử đơn hàng" title="Lịch sử đơn hàng" style="display: flex; align-items: center;">
-                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                </a>
-                
-                <a href="logout.php" aria-label="Đăng xuất" title="Đăng xuất" style="color: #d9534f; display: flex; align-items: center;">
-                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                </a>
-            <?php else: ?>
-                <a href="login.php" aria-label="Tài khoản" title="Đăng nhập" style="display: flex; align-items: center;">
-                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                </a>
-            <?php endif; ?>
+            <div class="user-dropdown-wrapper" id="js-user-dropdown" style="position: relative; display: flex; align-items: center; padding: 10px 0;">
+                <?php if(isset($_SESSION['user_id'])): ?>
+                    <span style="font-size: 13px; font-weight: bold; text-transform: uppercase; margin-right: 5px; user-select: none; cursor: default;">
+                        Chào, <?php 
+                            $name_parts = explode(' ', trim($_SESSION['user_fullname']));
+                            echo htmlspecialchars(end($name_parts)); 
+                        ?>
+                    </span>
+                    <a href="profile.php" aria-label="Tài khoản" style="display: flex; align-items: center;">
+                        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </a>
+                    
+                    <div class="user-dropdown-content" id="js-user-dropdown-content" style="display: none; position: absolute; right: 0; top: 100%; background-color: #fff; min-width: 200px; box-shadow: 0 8px 16px rgba(0,0,0,0.08); border: 1px solid #eee; padding: 10px 0; z-index: 100;">
+                        <a href="profile.php" style="display: block; padding: 12px 20px; font-size: 13px; text-decoration: none; color: #333; text-transform: uppercase;">Hồ sơ tài khoản</a>
+                        <a href="history.php" style="display: block; padding: 12px 20px; font-size: 13px; text-decoration: none; color: #333; text-transform: uppercase;">Lịch sử mua hàng</a>
+                        <a href="logout.php" style="display: block; padding: 12px 20px; font-size: 13px; text-decoration: none; color: #d9534f; text-transform: uppercase; border-top: 1px solid #eee;">Đăng xuất</a>
+                    </div>
+                <?php else: ?>
+                    <a href="login.php" aria-label="Tài khoản" title="Đăng nhập" style="display: flex; align-items: center;">
+                        <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </a>
+                <?php endif; ?>
+            </div>
 
             <a href="cart.php" aria-label="Giỏ hàng" class="cart-icon" title="Giỏ hàng" style="display: flex; align-items: center;">
                 <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
@@ -189,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Hover Dropdown
+    // Hover Dropdown Categories
     var dropdownLi = document.getElementById('js-dropdown-menu');
     var dropdownContent = document.getElementById('js-dropdown-content');
     if(dropdownLi && dropdownContent) {
@@ -198,6 +218,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         dropdownLi.addEventListener('mouseleave', function() {
             dropdownContent.style.display = 'none';
+        });
+    }
+
+    // Hover Dropdown User
+    var userDropdownWrapper = document.getElementById('js-user-dropdown');
+    var userDropdownContent = document.getElementById('js-user-dropdown-content');
+    if(userDropdownWrapper && userDropdownContent) {
+        userDropdownWrapper.addEventListener('mouseenter', function() {
+            userDropdownContent.style.display = 'block';
+        });
+        userDropdownWrapper.addEventListener('mouseleave', function() {
+            userDropdownContent.style.display = 'none';
         });
     }
 });
