@@ -87,8 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['place_order'])) {
         // Xóa giỏ hàng
         unset($_SESSION['cart']);
 
-        // Chuyển hướng đến trang lịch sử
-        echo "<script>alert('Đặt hàng thành công! Mã đơn hàng của bạn là #$order_id'); window.location.href='history.php';</script>";
+        // Chuyển hướng đến trang tóm tắt đơn hàng (Order Success)
+        echo "<script>window.location.href='order_success.php?id=$order_id';</script>";
         exit();
 
     } catch (Exception $e) {
