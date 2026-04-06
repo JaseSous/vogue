@@ -15,36 +15,24 @@ $limit = 8; // Số sản phẩm trên 1 trang
 $page = isset($_GET['page']) && (int)$_GET['page'] > 0 ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-// --- CÂU LỆNH SQL THẦN THÁNH CỦA ĐỒ ÁN ---
-// Truy vấn này lấy sản phẩm hiển thị, đồng thời tính luôn Giá Bán Cuối Cùng (final_price)
-// dựa trên giá nhập của lô hàng cũ nhất còn tồn kho (FIFO) kết hợp với % lợi nhuận và giá đề xuất.
-$sql = "SELECT p.*, 
-        GREATEST(
-            COALESCE(
-                (SELECT b.import_price 
-                 FROM import_batches b 
-                 JOIN import_receipts r ON b.receipt_id = r.id 
-                 WHERE b.product_id = p.id AND b.quantity_remaining > 0 AND r.status = 'completed' 
-                 ORDER BY r.import_date ASC, b.id ASC LIMIT 1)
-            , 0) * (1 + p.profit_margin / 100), 
-            p.selling_price
-        ) as final_price
-        FROM products p
-        WHERE p.status = 'visible'";
+// --- CÂU LỆNH SQL MỚI (BÌNH QUÂN GIA QUYỀN) ---
+// Lấy thẳng giá bán (selling_price) đã được Admin chốt trong CSDL.
+$sql = "SELECT *, selling_price as final_price 
+        FROM products 
+        WHERE status = 'visible'";
 
 // Gắn các điều kiện tìm kiếm
 if ($search !== '') {
-    $sql .= " AND p.name LIKE '%" . $conn->real_escape_string($search) . "%'";
+    $sql .= " AND name LIKE '%" . $conn->real_escape_string($search) . "%'";
 }
 if ($category > 0) {
-    $sql .= " AND p.category_id = " . $category;
+    $sql .= " AND category_id = " . $category;
 }
 
-// Lọc theo khoảng giá (Phải dùng HAVING vì final_price là cột được tính toán ảo)
+// Lọc theo khoảng giá dựa trên selling_price
 if ($min_price > 0 || $max_price > 0) {
-    $sql .= " HAVING 1=1";
-    if ($min_price > 0) $sql .= " AND final_price >= $min_price";
-    if ($max_price > 0) $sql .= " AND final_price <= $max_price";
+    if ($min_price > 0) $sql .= " AND selling_price >= $min_price";
+    if ($max_price > 0) $sql .= " AND selling_price <= $max_price";
 }
 
 // Tính tổng số sản phẩm để chia trang (Gói câu SQL thành 1 bảng tạm)

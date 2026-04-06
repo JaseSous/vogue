@@ -86,7 +86,7 @@ if (!$is_completed && $_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['comp
             $new_selling_price = $new_cost_price * (1 + ($profit_margin / 100));
             
             // 5. Lưu Giá vốn và Giá bán mới vào bảng products
-            $stmt_update = $conn->prepare("UPDATE products SET cost_price = ?, suggested_price = ? WHERE id = ?");
+            $stmt_update = $conn->prepare("UPDATE products SET cost_price = ?, selling_price = ? WHERE id = ?");
             $stmt_update->bind_param("ddi", $new_cost_price, $new_selling_price, $pid);
             $stmt_update->execute();
         }
