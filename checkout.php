@@ -147,15 +147,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['place_order'])) {
                     </label>
                 </div>
                 <div class="form-group">
-                    <label style="font-weight: normal; font-size: 15px; cursor: pointer;">
-                        <input type="radio" name="payment_method" value="transfer" style="width: auto; margin-right: 10px;"> 
-                        Chuyển khoản ngân hàng
+                    <label style="font-weight: normal; font-size: 15px; cursor: pointer; display: flex; align-items: center;">
+                        <input type="radio" name="payment_method" value="transfer" id="method_transfer" style="width: auto; margin-right: 10px;"> 
+                        Chuyển khoản ngân hàng 
                     </label>
+                    <div id="transfer_notice" style="display: none; background: #fdfdfd; border: 1px dashed #5cb85c; padding: 15px; margin-top: 10px; margin-left: 25px; font-size: 14px; color: #333; border-radius: 4px;">
+                        <span style="color: #5cb85c; font-weight: bold;">✓ Đã chọn chuyển khoản.</span><br>
+                        Mã QR chuyển tiền và nội dung chi tiết (kèm Mã đơn hàng) sẽ được hiển thị ngay sau khi bạn bấm <strong>ĐẶT HÀNG NGAY</strong>.
+                    </div>
                 </div>
+                
                 <div class="form-group">
-                    <label style="font-weight: normal; font-size: 15px; cursor: pointer;">
-                        <input type="radio" name="payment_method" value="online" style="width: auto; margin-right: 10px;"> 
-                        Thanh toán trực tuyến (VNPAY / Momo / Thẻ tín dụng)
+                    <label style="font-weight: normal; font-size: 15px; cursor: pointer; display: flex; align-items: center;">
+                        <input type="radio" name="payment_method" value="online" id="method_online" style="width: auto; margin-right: 10px;"> 
+                        Thanh toán trực tuyến (VNPAY / Momo)
                     </label>
                 </div>
                 
@@ -217,6 +222,24 @@ document.getElementById('form-checkout').addEventListener('submit', function(e) 
     }
     errorP.style.display = 'none';
 });
+
+// Hiệu ứng hiện thông báo khi chọn Chuyển khoản
+const radioCash = document.querySelector('input[value="cash"]');
+const radioTransfer = document.getElementById('method_transfer');
+const radioOnline = document.getElementById('method_online');
+const transferNotice = document.getElementById('transfer_notice');
+
+function togglePaymentNotice() {
+    if (radioTransfer && radioTransfer.checked) {
+        transferNotice.style.display = 'block';
+    } else {
+        if(transferNotice) transferNotice.style.display = 'none';
+    }
+}
+
+if(radioCash) radioCash.addEventListener('change', togglePaymentNotice);
+if(radioTransfer) radioTransfer.addEventListener('change', togglePaymentNotice);
+if(radioOnline) radioOnline.addEventListener('change', togglePaymentNotice);
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

@@ -65,6 +65,27 @@ $order_details = $stmt_details->get_result();
                 ?></p>
             </div>
         </div>
+        
+        <?php if ($order_info['payment_method'] == 'transfer'): ?>
+        <div style="background: #f4fbfe; border: 1px solid #5cb85c; padding: 25px; margin-bottom: 30px; text-align: center; border-radius: 8px;">
+            <h3 style="margin-top: 0; color: #2d672d; margin-bottom: 15px; font-size: 18px; text-transform: uppercase;">Hướng dẫn thanh toán chuyển khoản</h3>
+            
+            <p style="margin-bottom: 15px; font-size: 14px; color: #333;">Vui lòng dùng App Ngân hàng hoặc Momo để quét mã QR dưới đây:</p>
+            
+            <img src="assets/images/bank.jpg" alt="Mã QR Thanh Toán" style="width: 250px; max-width: 100%; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 20px;">
+            
+            <div style="background: #fff; display: inline-block; padding: 15px 30px; border: 2px dashed #5cb85c; border-radius: 5px; text-align: left;">
+                <p style="margin: 5px 0; font-size: 15px;">Ngân hàng: <strong>Vietcombank</strong></p>
+                <p style="margin: 5px 0; font-size: 15px;">Chủ tài khoản: <strong>NGUYEN MANH THANG</strong></p>
+                <p style="margin: 5px 0; font-size: 15px;">Số tài khoản: 1042337822<strong></strong></p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 10px 0;">
+                <p style="margin: 5px 0; font-size: 16px;">Số tiền cần chuyển: <strong style="color: #d9534f; font-size: 20px;"><?php echo number_format($order_info['total_amount'], 0, ',', '.'); ?>đ</strong></p>
+                <p style="margin: 5px 0; font-size: 16px;">Nội dung chuyển khoản: <strong style="background: #ffeb3b; padding: 4px 10px; border-radius: 4px; font-family: monospace; letter-spacing: 1px; color: #000; user-select: all;">ThanhToan-<?php echo $order_info['id']; ?></strong></p>
+            </div>
+            
+            <p style="color: #888; font-size: 13px; margin-top: 20px; font-style: italic;">* Đơn hàng của bạn sẽ được nhân viên xác nhận ngay sau khi nhận được thanh toán.</p>
+        </div>
+        <?php endif; ?>
 
         <h4 style="margin-top: 0; font-size: 14px; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 15px;">Sản phẩm đã đặt</h4>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
