@@ -9,22 +9,14 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $product_id = (int)$_GET['id'];
 
-// --- CÂU LỆNH SQL: Lấy chi tiết SP, tính Tồn kho và Giá bán FIFO ---
+// --- CÂU LỆNH SQL: Lấy chi tiết SP và tính Tồn kho (Bình quân) ---
 $sql = "SELECT p.*, c.name as category_name,
-        -- Tính tổng tồn kho hiện tại (cộng dồn từ các lô có số lượng > 0)
-        COALESCE((SELECT SUM(quantity_remaining) FROM import_batches WHERE product_id = p.id AND quantity_remaining > 0), 0) as total_stock,
-        
-        -- Tính giá bán FIFO (Lô cũ nhất)
-        GREATEST(
-            COALESCE(
-                (SELECT b.import_price 
-                 FROM import_batches b 
-                 JOIN import_receipts r ON b.receipt_id = r.id 
-                 WHERE b.product_id = p.id AND b.quantity_remaining > 0 AND r.status = 'completed' 
-                 ORDER BY r.import_date ASC, b.id ASC LIMIT 1)
-            , 0) * (1 + p.profit_margin / 100), 
-            p.selling_price
-        ) as final_price
+        -- Tính tổng tồn kho = Ban đầu + Tổng Nhập - Tổng Xuất
+        (p.initial_quantity 
+         + COALESCE((SELECT SUM(quantity_imported) FROM import_batches ib JOIN import_receipts ir ON ib.receipt_id = ir.id WHERE ir.status = 'completed' AND ib.product_id = p.id), 0)
+         - COALESCE((SELECT SUM(quantity) FROM order_details od JOIN orders o ON od.order_id = o.id WHERE o.status != 'cancelled' AND od.product_id = p.id), 0)
+        ) as total_stock,
+        p.selling_price as final_price
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
         WHERE p.id = $product_id AND p.status = 'visible'";

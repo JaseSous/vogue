@@ -46,59 +46,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['place_order'])) {
         $stmt_order->execute();
         $order_id = $stmt_order->insert_id; // Lấy ID của đơn hàng vừa tạo
 
-        // BƯỚC 2: THUẬT TOÁN FIFO (QUAN TRỌNG NHẤT)
+        // BƯỚC 2: TRỪ TỒN KHO VÀ LƯU CHI TIẾT ĐƠN HÀNG (Chuẩn Bình Quân Gia Quyền)
         foreach ($_SESSION['cart'] as $product_id => $qty_needed) {
-            // Lấy thông tin cơ bản của SP (để tính % lợi nhuận và giá đề xuất)
-            $p_query = $conn->query("SELECT profit_margin, selling_price FROM products WHERE id = $product_id");
+            // Lấy thông tin giá bán hiện tại và tính lại tồn kho một lần nữa để chắc chắn
+            $p_query = $conn->query("SELECT selling_price, 
+                (initial_quantity + COALESCE((SELECT SUM(quantity_imported) FROM import_batches ib JOIN import_receipts ir ON ib.receipt_id = ir.id WHERE ir.status = 'completed' AND ib.product_id = products.id), 0) - COALESCE((SELECT SUM(quantity) FROM order_details od JOIN orders o ON od.order_id = o.id WHERE o.status != 'cancelled' AND od.product_id = products.id), 0)) as total_stock 
+                FROM products WHERE id = $product_id FOR UPDATE");
+            
             $p_info = $p_query->fetch_assoc();
-            $margin = $p_info['profit_margin'];
-            $suggested = $p_info['selling_price'];
+            $selling_price = $p_info['selling_price'];
+            $available = $p_info['total_stock'];
 
-            // Vòng lặp tìm lô hàng cũ nhất còn tồn để trừ lùi
-            while ($qty_needed > 0) {
-                // Lấy lô hàng có ngày nhập cũ nhất (ASC) mà vẫn còn hàng (> 0)
-                $batch_query = $conn->query("
-                    SELECT b.id as batch_id, b.quantity_remaining, b.import_price 
-                    FROM import_batches b 
-                    JOIN import_receipts r ON b.receipt_id = r.id 
-                    WHERE b.product_id = $product_id AND b.quantity_remaining > 0 AND r.status = 'completed'
-                    ORDER BY r.import_date ASC, b.id ASC 
-                    LIMIT 1 FOR UPDATE
-                "); // 'FOR UPDATE' khoá dòng này lại không cho ai mua trùng lúc này
-
-                if ($batch_query->num_rows == 0) {
-                    throw new Exception("Sản phẩm ID $product_id không đủ số lượng trong kho!");
-                }
-
-                $batch = $batch_query->fetch_assoc();
-                $batch_id = $batch['batch_id'];
-                $available = $batch['quantity_remaining'];
-                $import_price = $batch['import_price'];
-
-                // Tính GIÁ BÁN CHO LÔ NÀY (Theo công thức đồ án)
-                $calculated_price = $import_price * (1 + $margin / 100);
-                $selling_price = max($calculated_price, $suggested);
-
-                // Quyết định số lượng trừ ở lô này
-                if ($available >= $qty_needed) {
-                    $deduct = $qty_needed; // Lô này đủ hàng, lấy hết phần cần thiết
-                    $qty_needed = 0;       // Đã lấy đủ
-                } else {
-                    $deduct = $available;  // Lô này không đủ, lấy sạch lô này
-                    $qty_needed -= $available; // Vẫn còn thiếu, tiếp tục vòng lặp sang lô tiếp theo
-                }
-
-                // Cập nhật lại tồn kho của lô
-                $conn->query("UPDATE import_batches SET quantity_remaining = quantity_remaining - $deduct WHERE id = $batch_id");
-
-                // Ghi vào chi tiết đơn hàng (Mua từ lô nào, giá bao nhiêu)
-                $stmt_detail = $conn->prepare("INSERT INTO order_details (order_id, product_id, batch_id, quantity, selling_price) VALUES (?, ?, ?, ?, ?)");
-                $stmt_detail->bind_param("iiiid", $order_id, $product_id, $batch_id, $deduct, $selling_price);
-                $stmt_detail->execute();
-
-                // Cộng dồn vào tổng tiền đơn hàng
-                $total_amount += ($deduct * $selling_price);
+            if ($available < $qty_needed) {
+                throw new Exception("Sản phẩm ID $product_id hiện không đủ số lượng trong kho!");
             }
+
+            // Ghi vào chi tiết đơn hàng
+            $stmt_detail = $conn->prepare("INSERT INTO order_details (order_id, product_id, quantity, selling_price) VALUES (?, ?, ?, ?)");
+            $stmt_detail->bind_param("iiid", $order_id, $product_id, $qty_needed, $selling_price);
+            $stmt_detail->execute();
+
+            // Cộng dồn vào tổng tiền đơn hàng
+            $total_amount += ($qty_needed * $selling_price);
         }
 
         // BƯỚC 3: Cập nhật lại tổng tiền chuẩn xác vào đơn hàng
@@ -186,16 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['place_order'])) {
                 $total_cart_value = 0;
                 $product_ids = implode(',', array_keys($_SESSION['cart']));
                 
-                $sql = "SELECT p.id, p.name, 
-                        GREATEST(
-                            COALESCE(
-                                (SELECT b.import_price 
-                                 FROM import_batches b JOIN import_receipts r ON b.receipt_id = r.id 
-                                 WHERE b.product_id = p.id AND b.quantity_remaining > 0 AND r.status = 'completed' 
-                                 ORDER BY r.import_date ASC, b.id ASC LIMIT 1)
-                            , 0) * (1 + p.profit_margin / 100), 
-                            p.selling_price
-                        ) as final_price
+                $sql = "SELECT p.id, p.name, p.selling_price as final_price
                         FROM products p WHERE p.id IN ($product_ids)";
                 
                 $result = $conn->query($sql);

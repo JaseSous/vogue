@@ -25,7 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
     if ($product_id > 0) {
         // Kiểm tra tồn kho thực tế từ CSDL trước khi cho phép thao tác
-        $stock_check = $conn->query("SELECT COALESCE((SELECT SUM(quantity_remaining) FROM import_batches WHERE product_id = $product_id AND quantity_remaining > 0), 0) as total_stock FROM products WHERE id = $product_id");
+        // Kiểm tra tồn kho thực tế từ CSDL trước khi cho phép thao tác
+        $stock_check = $conn->query("SELECT (initial_quantity + COALESCE((SELECT SUM(quantity_imported) FROM import_batches ib JOIN import_receipts ir ON ib.receipt_id = ir.id WHERE ir.status = 'completed' AND ib.product_id = products.id), 0) - COALESCE((SELECT SUM(quantity) FROM order_details od JOIN orders o ON od.order_id = o.id WHERE o.status != 'cancelled' AND od.product_id = products.id), 0)) as total_stock FROM products WHERE id = $product_id");
         if ($stock_check->num_rows > 0) {
             $stock_row = $stock_check->fetch_assoc();
             $available_stock = (int)$stock_row['total_stock'];
@@ -110,19 +111,10 @@ if (isset($_SESSION['cart_msg'])) {
                             $total_cart_value = 0;
                             $product_ids = implode(',', array_keys($_SESSION['cart']));
                             
-                            // Lấy thông tin sản phẩm và tính Giá bán FIFO chuẩn nhất
+                            // Lấy thông tin sản phẩm và Tồn kho chuẩn nhất
                             $sql = "SELECT p.*, 
-                                    COALESCE((SELECT SUM(quantity_remaining) FROM import_batches WHERE product_id = p.id AND quantity_remaining > 0), 0) as total_stock,
-                                    GREATEST(
-                                        COALESCE(
-                                            (SELECT b.import_price 
-                                             FROM import_batches b 
-                                             JOIN import_receipts r ON b.receipt_id = r.id 
-                                             WHERE b.product_id = p.id AND b.quantity_remaining > 0 AND r.status = 'completed' 
-                                             ORDER BY r.import_date ASC, b.id ASC LIMIT 1)
-                                        , 0) * (1 + p.profit_margin / 100), 
-                                        p.selling_price
-                                    ) as final_price
+                                    (p.initial_quantity + COALESCE((SELECT SUM(quantity_imported) FROM import_batches ib JOIN import_receipts ir ON ib.receipt_id = ir.id WHERE ir.status = 'completed' AND ib.product_id = p.id), 0) - COALESCE((SELECT SUM(quantity) FROM order_details od JOIN orders o ON od.order_id = o.id WHERE o.status != 'cancelled' AND od.product_id = p.id), 0)) as total_stock,
+                                    p.selling_price as final_price
                                     FROM products p
                                     WHERE p.id IN ($product_ids)";
                             

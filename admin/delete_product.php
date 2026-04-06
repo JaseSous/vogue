@@ -14,8 +14,9 @@ if (isset($_GET['id'])) {
     // 1. Kiểm tra xem sản phẩm này đã từng được nhập hàng chưa
     // Bằng cách đếm xem có dòng dữ liệu nào của sản phẩm này trong bảng import_batches không
     $check_import = $conn->query("SELECT id FROM import_batches WHERE product_id = $product_id LIMIT 1");
+    $check_order = $conn->query("SELECT id FROM order_details WHERE product_id = $product_id LIMIT 1");
 
-    if ($check_import->num_rows > 0) {
+    if ($check_import->num_rows > 0 || $check_order->num_rows > 0) {
         // TRƯỜNG HỢP A: SẢN PHẨM ĐÃ ĐƯỢC NHẬP HÀNG -> XOÁ MỀM
         // Cập nhật trạng thái thành 'deleted' để ẩn hoàn toàn khỏi danh sách bán và danh sách quản trị
         // nhưng vẫn giữ lại ID và tên trong CSDL để phục vụ tra cứu lịch sử đơn hàng/phiếu nhập.
