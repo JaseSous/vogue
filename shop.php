@@ -16,10 +16,7 @@ $page = isset($_GET['page']) && (int)$_GET['page'] > 0 ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
 // --- CÂU LỆNH SQL MỚI (BÌNH QUÂN GIA QUYỀN) ---
-// Lấy thẳng giá bán (selling_price) đã được Admin chốt trong CSDL.
-$sql = "SELECT *, selling_price as final_price 
-        FROM products 
-        WHERE status = 'visible'";
+$sql = "SELECT *, selling_price as final_price FROM products WHERE status = 'visible'";
 
 // Gắn các điều kiện tìm kiếm
 if ($search !== '') {
@@ -29,20 +26,20 @@ if ($category > 0) {
     $sql .= " AND category_id = " . $category;
 }
 
-// Lọc theo khoảng giá dựa trên selling_price
+// Lọc theo khoảng giá
 if ($min_price > 0 || $max_price > 0) {
     if ($min_price > 0) $sql .= " AND selling_price >= $min_price";
     if ($max_price > 0) $sql .= " AND selling_price <= $max_price";
 }
 
-// Tính tổng số sản phẩm để chia trang (Gói câu SQL thành 1 bảng tạm)
+// Tính tổng số sản phẩm để chia trang
 $count_sql = "SELECT COUNT(*) as total FROM ($sql) as temp_table";
 $total_res = $conn->query($count_sql);
 $total_rows = $total_res->fetch_assoc()['total'];
 $total_pages = ceil($total_rows / $limit);
 
-// Thêm sắp xếp và Limit cho phân trang
-$sql .= " ORDER BY p.id DESC LIMIT $limit OFFSET $offset";
+// Thêm sắp xếp và Limit cho phân trang (Đã sửa p.id thành id)
+$sql .= " ORDER BY id DESC LIMIT $limit OFFSET $offset";
 $products = $conn->query($sql);
 ?>
 

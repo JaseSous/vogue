@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_product'])) {
     $unit = trim($_POST['unit']);
     $initial_quantity = (int)$_POST['initial_quantity'];
     $cost_price = (float)$_POST['cost_price'];
-    $selling_price = $cost_price * (1 + ($profit_margin / 100)); // Tự động tính giá bán
     $profit_margin = (float)$_POST['profit_margin'];
+    $selling_price = $cost_price * (1 + ($profit_margin / 100));
     $status = $_POST['status']; // Đặc biệt chú ý cập nhật hiện trạng 
     $current_image = $_POST['current_image'];
 
