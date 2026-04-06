@@ -68,7 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['place_order'])) {
             // Ghi vào chi tiết đơn hàng
             $stmt_detail = $conn->prepare("INSERT INTO order_details (order_id, product_id, quantity, selling_price) VALUES (?, ?, ?, ?)");
             $stmt_detail->bind_param("iiid", $order_id, $product_id, $qty_needed, $selling_price);
-            $stmt_detail->execute();
+            
+            // Ép hệ thống phải quăng lỗi nếu lưu chi tiết thất bại
+            if (!$stmt_detail->execute()) {
+                throw new Exception("Lỗi CSDL khi lưu chi tiết đơn hàng: " . $stmt_detail->error);
+            }
 
             // Cộng dồn vào tổng tiền đơn hàng
             $total_amount += ($qty_needed * $selling_price);
