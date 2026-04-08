@@ -175,7 +175,7 @@ if (isset($_SESSION['cart_msg'])) {
                     </div>
                     <div class="summary-row">
                         <span>Phí vận chuyển:</span>
-                        <span>Sẽ tính ở bước sau</span>
+                        <span>Miễn phí</span>
                     </div>
                     <div class="summary-total">
                         <span>TỔNG CỘNG:</span>
