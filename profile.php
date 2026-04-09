@@ -26,6 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
     $conn->begin_transaction();
     
     try {
+        if (!preg_match('/^0\d{9}$/', $phone)) {
+            throw new Exception("Số điện thoại không hợp lệ! Yêu cầu 10 số bắt đầu bằng số 0.");
+        }
+
         // 1. Cập nhật Bảng users (Tên, SĐT, Mật khẩu nếu có nhập)
         if (!empty($new_password)) {
             if ($new_password !== $confirm_password) {
@@ -81,7 +85,7 @@ $user_info = $conn->query($sql_info)->fetch_assoc();
         
         <?php if ($message) echo $message; ?>
 
-        <form action="profile.php" method="POST" style="display: flex; flex-direction: column; gap: 25px;">
+        <form action="profile.php" method="POST" id="form-profile" style="display: flex; flex-direction: column; gap: 25px;">
             
             <div>
                 <h4 style="margin-top: 0; margin-bottom: 15px; font-size: 15px; color: #000; border-bottom: 1px solid #eee; padding-bottom: 8px; text-transform: uppercase;">1. Thông tin Đăng nhập</h4>
@@ -106,7 +110,7 @@ $user_info = $conn->query($sql_info)->fetch_assoc();
                     </div>
                     <div style="flex: 1;">
                         <label style="display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px;">Số điện thoại *</label>
-                        <input type="text" name="phone" value="<?php echo htmlspecialchars($user_info['phone']); ?>" required style="width: 100%; padding: 12px; border: 1px solid #ccc; outline: none; font-size: 14px;">
+                        <input type="text" name="phone" id="p_phone" value="<?php echo htmlspecialchars($user_info['phone']); ?>" required style="width: 100%; padding: 12px; border: 1px solid #ccc; outline: none; font-size: 14px;">
                     </div>
                 </div>
             </div>
@@ -147,9 +151,27 @@ $user_info = $conn->query($sql_info)->fetch_assoc();
                 </div>
             </div>
 
+            <p id="js-error-profile" style="color: #d9534f; font-size: 13px; display: none; margin-top: 5px; text-align: center;"></p>
             <button type="submit" name="update_profile" style="background: #000; color: #fff; border: none; padding: 15px; font-family: 'Times New Roman', Times, serif; font-size: 16px; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; margin-top: 10px; transition: 0.3s;">Lưu Thay Đổi</button>
         </form>
     </div>
 </main>
+
+<script>
+document.getElementById('form-profile').addEventListener('submit', function(e) {
+    let phone = document.getElementById('p_phone').value.trim();
+    let errorP = document.getElementById('js-error-profile');
+    
+    const phoneRegex = /^0\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+        e.preventDefault();
+        errorP.style.display = 'block';
+        errorP.innerText = 'Số điện thoại không hợp lệ! Yêu cầu 10 số bắt đầu bằng số 0.';
+        return;
+    }
+    
+    errorP.style.display = 'none';
+});
+</script>
 
 <?php require_once 'includes/footer.php'; ?>

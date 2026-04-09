@@ -220,6 +220,15 @@ document.getElementById('form-checkout').addEventListener('submit', function(e) 
         errorP.innerText = 'Vui lòng điền đầy đủ tất cả các thông tin giao hàng có dấu (*)!';
         return;
     }
+
+    const phoneRegex = /^0\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+        e.preventDefault();
+        errorP.style.display = 'block';
+        errorP.innerText = 'Số điện thoại không hợp lệ! Yêu cầu 10 số bắt đầu bằng số 0.';
+        return;
+    }
+
     errorP.style.display = 'none';
 });
 

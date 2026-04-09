@@ -29,6 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['register'])) {
     
     if ($check->get_result()->num_rows > 0) {
         $message = "<p style='color: #d9534f; background: #fdf7f7; padding: 10px; border: 1px solid #d9534f; margin-bottom: 20px; text-align: center;'>Tên đăng nhập hoặc Email đã được sử dụng!</p>";
+    } elseif (!preg_match('/^0\d{9}$/', $phone)) {
+        $message = "<p style='color: #d9534f; background: #fdf7f7; padding: 10px; border: 1px solid #d9534f; margin-bottom: 20px; text-align: center;'>Số điện thoại không hợp lệ! Yêu cầu 10 số bắt đầu bằng số 0.</p>";
     } else {
         // Mã hóa mật khẩu
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
@@ -166,6 +168,14 @@ document.getElementById('form-register').addEventListener('submit', function(e) 
         e.preventDefault();
         errorP.style.display = 'block';
         errorP.innerText = 'Vui lòng điền đầy đủ tất cả các trường!';
+        return;
+    }
+
+    const phoneRegex = /^0\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+        e.preventDefault();
+        errorP.style.display = 'block';
+        errorP.innerText = 'Số điện thoại không hợp lệ! Yêu cầu 10 số bắt đầu bằng số 0.';
         return;
     }
     

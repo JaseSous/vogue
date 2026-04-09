@@ -12,18 +12,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_user'])) {
     $email = trim($_POST['email']);
     $phone = trim($_POST['phone']);
     $role = $_POST['role'];
+    
+    // Nhận thêm dữ liệu địa chỉ
+    $address_line = trim($_POST['address_line'] ?? '');
+    $ward = trim($_POST['ward'] ?? '');
+    $district = trim($_POST['district'] ?? '');
+    $city = trim($_POST['city'] ?? '');
 
     // Kiểm tra xem username đã tồn tại trong CSDL chưa
     $check = $conn->query("SELECT id FROM users WHERE username = '$username'");
     if ($check->num_rows > 0) {
         $message = "<p style='color: #d9534f; background: #fdf7f7; padding: 10px; border: 1px solid #d9534f;'>Tên đăng nhập đã tồn tại! Vui lòng chọn tên khác.</p>";
+    } elseif (!preg_match('/^0\d{9}$/', $phone)) {
+        $message = "<p style='color: #d9534f; background: #fdf7f7; padding: 10px; border: 1px solid #d9534f;'>Số điện thoại không hợp lệ! Yêu cầu 10 chữ số bắt đầu bằng số 0.</p>";
+    } elseif ($address_line === '' || $ward === '' || $district === '' || $city === '') {
+        $message = "<p style='color: #d9534f; background: #fdf7f7; padding: 10px; border: 1px solid #d9534f;'>Bắt buộc phải nhập đầy đủ địa chỉ!</p>";
     } else {
-        $stmt = $conn->prepare("INSERT INTO users (username, password, fullname, email, phone, role) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssss", $username, $password, $fullname, $email, $phone, $role);
-        if ($stmt->execute()) {
+        $conn->begin_transaction();
+        try {
+            $stmt = $conn->prepare("INSERT INTO users (username, password, fullname, email, phone, role) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ssssss", $username, $password, $fullname, $email, $phone, $role);
+            $stmt->execute();
+            $new_user_id = $conn->insert_id;
+
+            // Nếu nhập địa chỉ (thường chỉ cho khách hàng) thì lưu vào bảng addresses
+            if ($address_line !== '' || $ward !== '' || $district !== '' || $city !== '') {
+                $stmt_addr = $conn->prepare("INSERT INTO addresses (user_id, receiver_name, receiver_phone, address_line, ward, district, city, is_default) VALUES (?, ?, ?, ?, ?, ?, ?, 1)");
+                $stmt_addr->bind_param("issssss", $new_user_id, $fullname, $phone, $address_line, $ward, $district, $city);
+                $stmt_addr->execute();
+            }
+
+            $conn->commit();
             $message = "<p style='color: #5cb85c; background: #f4fdf4; padding: 10px; border: 1px solid #5cb85c;'>Thêm người dùng thành công!</p>";
-        } else {
-            $message = "<p style='color: #d9534f; background: #fdf7f7; padding: 10px; border: 1px solid #d9534f;'>Lỗi CSDL: " . $conn->error . "</p>";
+        } catch (Exception $e) {
+            $conn->rollback();
+            $message = "<p style='color: #d9534f; background: #fdf7f7; padding: 10px; border: 1px solid #d9534f;'>Lỗi hệ thống: " . $e->getMessage() . "</p>";
         }
     }
 }
@@ -84,10 +107,34 @@ $users = $conn->query("SELECT * FROM users ORDER BY id DESC");
         </div>
         <div>
             <label style="display: block; font-size: 12px; text-transform: uppercase; font-weight: bold; margin-bottom: 5px;">Phân quyền</label>
-            <select name="role" style="width: 100%; padding: 8px; border: 1px solid #ccc; outline: none;">
+            <select name="role" id="u_role" style="width: 100%; padding: 8px; border: 1px solid #ccc; outline: none;">
                 <option value="customer">Khách hàng (Customer)</option>
                 <option value="admin">Quản trị viên (Admin)</option>
             </select>
+        </div>
+
+        <div style="grid-column: span 2;">
+            <h4 style="margin-top: 10px; margin-bottom: 15px; font-size: 14px; text-transform: uppercase;">Địa chỉ giao hàng</h4>
+            <div style="display: flex; gap: 15px; margin-bottom: 12px;">
+                <div style="flex: 2;">
+                    <label style="display: block; font-size: 12px; text-transform: uppercase; font-weight: bold; margin-bottom: 5px;">Số nhà, Tên đường *</label>
+                    <input type="text" name="address_line" id="u_address" placeholder="VD: Số 123 Đường ABC" style="width: 100%; padding: 8px; border: 1px solid #ccc; outline: none;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 12px; text-transform: uppercase; font-weight: bold; margin-bottom: 5px;">Phường/Xã *</label>
+                    <input type="text" name="ward" id="u_ward" style="width: 100%; padding: 8px; border: 1px solid #ccc; outline: none;">
+                </div>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 12px; text-transform: uppercase; font-weight: bold; margin-bottom: 5px;">Quận/Huyện *</label>
+                    <input type="text" name="district" id="u_district" style="width: 100%; padding: 8px; border: 1px solid #ccc; outline: none;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 12px; text-transform: uppercase; font-weight: bold; margin-bottom: 5px;">Tỉnh/Thành phố *</label>
+                    <input type="text" name="city" id="u_city" style="width: 100%; padding: 8px; border: 1px solid #ccc; outline: none;">
+                </div>
+            </div>
         </div>
         
         <div style="grid-column: span 2;">
@@ -150,15 +197,40 @@ document.getElementById('form-add-user').addEventListener('submit', function(e) 
     let name = document.getElementById('u_fullname').value.trim();
     let email = document.getElementById('u_email').value.trim();
     let phone = document.getElementById('u_phone').value.trim();
+    let role = document.getElementById('u_role').value;
+    
+    // Lấy thông tin địa chỉ
+    let address = document.getElementById('u_address').value.trim();
+    let ward = document.getElementById('u_ward').value.trim();
+    let district = document.getElementById('u_district').value.trim();
+    let city = document.getElementById('u_city').value.trim();
+
     let errorP = document.getElementById('js-error-user');
     
-    // Kiểm tra rỗng
+    // Kiểm tra rỗng chung
     if (user === '' || pass === '' || name === '' || email === '' || phone === '') {
         e.preventDefault(); // Ngăn chặn gửi dữ liệu về máy chủ
         errorP.style.display = 'block';
         errorP.innerText = 'Vui lòng điền đầy đủ tất cả các trường có dấu * !';
         return;
     } 
+
+    // Kiểm tra format sđt
+    const phoneRegex = /^0\d{9}$/;
+    if (!phoneRegex.test(phone)) {
+        e.preventDefault();
+        errorP.style.display = 'block';
+        errorP.innerText = 'Số điện thoại không hợp lệ! Yêu cầu 10 số bắt đầu bằng số 0.';
+        return;
+    }
+
+    // Kiểm tra địa chỉ
+    if (address === '' || ward === '' || district === '' || city === '') {
+        e.preventDefault();
+        errorP.style.display = 'block';
+        errorP.innerText = 'Bắt buộc phải có đầy đủ thông tin địa chỉ!';
+        return;
+    }
     
     // Kiểm tra độ dài mật khẩu
     if (pass.length < 6) {
