@@ -6,7 +6,6 @@ $message = '';
 // --- XỬ LÝ THÊM DANH MỤC ---
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_category'])) {
     $name = trim($_POST['name']);
-    $description = trim($_POST['description']);
 
     // Kiểm tra xem tên danh mục đã tồn tại chưa để tránh trùng lặp
     $check = $conn->prepare("SELECT id FROM categories WHERE name = ?");
@@ -16,8 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_category'])) {
     if ($check->get_result()->num_rows > 0) {
         $message = "<p style='color: #d9534f; background: #fdf7f7; padding: 10px; border: 1px solid #d9534f;'>Tên danh mục này đã tồn tại!</p>";
     } else {
-        $stmt = $conn->prepare("INSERT INTO categories (name, description) VALUES (?, ?)");
-        $stmt->bind_param("ss", $name, $description);
+        // Đã xóa cột description khỏi câu lệnh INSERT
+        $stmt = $conn->prepare("INSERT INTO categories (name) VALUES (?)");
+        $stmt->bind_param("s", $name);
         
         if ($stmt->execute()) {
             $message = "<p style='color: #5cb85c; background: #f4fdf4; padding: 10px; border: 1px solid #5cb85c;'>Thêm danh mục thành công!</p>";
@@ -43,10 +43,6 @@ $categories = $conn->query("SELECT * FROM categories ORDER BY id DESC");
             <label style="display: block; font-size: 12px; text-transform: uppercase; font-weight: bold; margin-bottom: 5px;">Tên danh mục *</label>
             <input type="text" name="name" id="c_name" placeholder="VD: Áo Sơ Mi Nam, Quần Tây Nữ..." style="width: 100%; padding: 8px; border: 1px solid #ccc; outline: none;">
         </div>
-        <div>
-            <label style="display: block; font-size: 12px; text-transform: uppercase; font-weight: bold; margin-bottom: 5px;">Mô tả</label>
-            <textarea name="description" id="c_description" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ccc; outline: none; resize: vertical;"></textarea>
-        </div>
         
         <div>
             <p id="js-error-category" style="color: #d9534f; font-size: 13px; display: none; margin-bottom: 10px;"></p>
@@ -59,8 +55,7 @@ $categories = $conn->query("SELECT * FROM categories ORDER BY id DESC");
     <thead>
         <tr>
             <th style="width: 50px;">ID</th>
-            <th style="width: 200px;">Tên Danh Mục</th>
-            <th>Mô Tả</th>
+            <th>Tên Danh Mục</th>
         </tr>
     </thead>
     <tbody>
@@ -69,12 +64,11 @@ $categories = $conn->query("SELECT * FROM categories ORDER BY id DESC");
             <tr>
                 <td style="text-align: center;"><?php echo $row['id']; ?></td>
                 <td style="font-weight: bold;"><?php echo htmlspecialchars($row['name']); ?></td>
-                <td style="color: #555;"><?php echo htmlspecialchars($row['description']); ?></td>
             </tr>
             <?php endwhile; ?>
         <?php else: ?>
             <tr>
-                <td colspan="3" style="text-align: center; padding: 20px; color: #666;">Chưa có danh mục nào. Hãy thêm danh mục đầu tiên!</td>
+                <td colspan="2" style="text-align: center; padding: 20px; color: #666;">Chưa có danh mục nào. Hãy thêm danh mục đầu tiên!</td>
             </tr>
         <?php endif; ?>
     </tbody>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: sql101.infinityfree.com
--- Generation Time: Apr 09, 2026 at 02:15 AM
+-- Generation Time: Apr 09, 2026 at 05:43 AM
 -- Server version: 11.4.10-MariaDB
 -- PHP Version: 7.2.22
 
@@ -38,11 +38,11 @@ INSERT INTO `addresses` (`id`, `user_id`, `receiver_name`, `receiver_phone`, `ad
 -- Dumping data for table `categories`
 --
 
-INSERT INTO `categories` (`id`, `name`, `description`) VALUES
-(1, 'Áo khoác', ''),
-(2, 'Áo thun & Áo nỉ', ''),
-(3, 'Áo sơ mi & Áo polo', ''),
-(4, 'Quần', '');
+INSERT INTO `categories` (`id`, `name`) VALUES
+(1, 'Áo khoác'),
+(2, 'Áo thun & Áo nỉ'),
+(3, 'Áo sơ mi & Áo polo'),
+(4, 'Quần');
 
 --
 -- Dumping data for table `import_batches`
