@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: sql101.infinityfree.com
--- Generation Time: Apr 07, 2026 at 11:21 AM
+-- Generation Time: Apr 09, 2026 at 02:15 AM
 -- Server version: 11.4.10-MariaDB
 -- PHP Version: 7.2.22
 
@@ -21,26 +21,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `if0_41584104_vogue`
 --
-CREATE DATABASE IF NOT EXISTS `if0_41584104_vogue` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
-USE `if0_41584104_vogue`;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `addresses`
---
-
-CREATE TABLE `addresses` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `receiver_name` varchar(100) NOT NULL,
-  `receiver_phone` varchar(20) NOT NULL,
-  `address_line` varchar(255) NOT NULL,
-  `ward` varchar(100) NOT NULL,
-  `district` varchar(100) NOT NULL,
-  `city` varchar(100) NOT NULL,
-  `is_default` tinyint(1) DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `addresses`
@@ -49,19 +29,10 @@ CREATE TABLE `addresses` (
 INSERT INTO `addresses` (`id`, `user_id`, `receiver_name`, `receiver_phone`, `address_line`, `ward`, `district`, `city`, `is_default`) VALUES
 (1, 2, 'Nguyễn Mạnh Thắng', '0936159691', '39/9 Hồ Đắc Di', 'Tây Thạnh', 'Tân Phú', 'Hồ Chí Minh', 1),
 (2, 3, 'hẹ hẹ', '1234', '12 dg 1', 'hẹ hẹ', 'hẹ hẹ', 'hẹ hẹ', 1),
-(3, 4, 'Tran Huynh Phat', '0768847633', '4124125', '1251221', '4124125', '124123', 1);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `categories`
---
-
-CREATE TABLE `categories` (
-  `id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `description` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+(3, 4, 'Tran Huynh Phat', '0768847633', '4124125', '1251221', '4124125', '124123', 1),
+(4, 5, 'Phát', '0300000000', '000 SaiGon', '00', '00', '00', 1),
+(5, 6, 'Tien Nam', '0932817462', 'hcm', 'fwa', '3ewqd', 'hcm', 1),
+(6, 8, 'Nguyễn Minh Huy', '0972875481', '123 Điện Biên Phủ', 'An Khánh', 'Bình Thạnh', 'Hồ Chí Minh', 1);
 
 --
 -- Dumping data for table `categories`
@@ -73,21 +44,6 @@ INSERT INTO `categories` (`id`, `name`, `description`) VALUES
 (3, 'Áo sơ mi & Áo polo', ''),
 (4, 'Quần', '');
 
--- --------------------------------------------------------
-
---
--- Table structure for table `import_batches`
---
-
-CREATE TABLE `import_batches` (
-  `id` int(11) NOT NULL,
-  `receipt_id` int(11) NOT NULL,
-  `product_id` int(11) NOT NULL,
-  `import_price` decimal(15,2) NOT NULL,
-  `quantity_imported` int(11) NOT NULL,
-  `quantity_remaining` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 --
 -- Dumping data for table `import_batches`
 --
@@ -97,20 +53,8 @@ INSERT INTO `import_batches` (`id`, `receipt_id`, `product_id`, `import_price`, 
 (2, 1, 6, '685000.00', 20, 20),
 (3, 1, 3, '910000.00', 20, 20),
 (4, 2, 14, '900000.00', 10, 10),
-(6, 3, 12, '130000.00', 50, 50);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `import_receipts`
---
-
-CREATE TABLE `import_receipts` (
-  `id` int(11) NOT NULL,
-  `import_date` datetime DEFAULT current_timestamp(),
-  `status` enum('pending','completed') DEFAULT 'pending',
-  `created_by` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+(6, 3, 12, '130000.00', 50, 50),
+(7, 5, 7, '1530000.00', 10, 10);
 
 --
 -- Dumping data for table `import_receipts`
@@ -120,28 +64,8 @@ INSERT INTO `import_receipts` (`id`, `import_date`, `status`, `created_by`) VALU
 (1, '2026-04-05 16:26:05', 'completed', 1),
 (2, '2026-04-06 22:39:45', 'completed', 1),
 (3, '2026-04-07 06:06:40', 'completed', 1),
-(4, '2026-04-07 07:05:10', 'pending', 1);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `orders`
---
-
-CREATE TABLE `orders` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `order_date` datetime DEFAULT current_timestamp(),
-  `total_amount` decimal(15,2) NOT NULL,
-  `payment_method` enum('cash','transfer','online') NOT NULL,
-  `shipping_name` varchar(100) NOT NULL,
-  `shipping_phone` varchar(20) NOT NULL,
-  `shipping_address` varchar(255) NOT NULL,
-  `shipping_ward` varchar(100) NOT NULL,
-  `shipping_district` varchar(100) NOT NULL,
-  `shipping_city` varchar(100) NOT NULL,
-  `status` enum('pending','confirmed','successful','cancelled') DEFAULT 'pending'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+(4, '2026-04-07 07:05:10', 'pending', 1),
+(5, '2026-04-08 07:27:46', 'pending', 1);
 
 --
 -- Dumping data for table `orders`
@@ -151,25 +75,18 @@ INSERT INTO `orders` (`id`, `user_id`, `order_date`, `total_amount`, `payment_me
 (1, 2, '2026-04-06 17:24:04', '2156000.00', 'cash', 'Nguyễn Mạnh Thắng', '0936159691', '39/9 Hồ Đắc Di', 'Tây Thạnh', 'Tân Phú', 'Hồ Chí Minh', 'pending'),
 (2, 2, '2026-04-06 17:37:11', '4158000.00', 'cash', 'Nguyễn Mạnh Thắng', '0936159691', '39/9 Hồ Đắc Di', 'Tây Thạnh', 'Tân Phú', 'Hồ Chí Minh', 'successful'),
 (3, 2, '2026-04-06 18:09:49', '4242015.70', 'transfer', 'Nguyễn Mạnh Thắng', '0936159691', '39/9 Hồ Đắc Di', 'Tây Thạnh', 'Tân Phú', 'Hồ Chí Minh', 'confirmed'),
-(4, 2, '2026-04-06 18:51:51', '1794000.00', 'online', 'Nguyễn Mạnh Thắng', '0936159691', '39/9 Hồ Đắc Di', 'Tây Thạnh', 'Tân Phú', 'Hồ Chí Minh', 'confirmed'),
+(4, 2, '2026-04-06 18:51:51', '1794000.00', 'online', 'Nguyễn Mạnh Thắng', '0936159691', '39/9 Hồ Đắc Di', 'Tây Thạnh', 'Tân Phú', 'Hồ Chí Minh', 'cancelled'),
 (5, 2, '2026-04-07 00:48:48', '1069775.70', 'transfer', 'Nguyễn Mạnh Thắng', '0936159691', '39/9 Hồ Đắc Di', 'Tây Thạnh', 'Tân Phú', 'Hồ Chí Minh', 'pending'),
 (6, 3, '2026-04-07 01:01:36', '3588000.00', 'transfer', 'hẹ hẹ', '1234', '12 dg 1', 'hẹ hẹ', 'hẹ hẹ', 'hẹ hẹ', 'successful'),
 (7, 4, '2026-04-07 09:16:40', '19044000.00', 'cash', 'Tran Huynh Phat', '0768847633', '4124125', '1251221', '4124125', '124123', 'cancelled'),
-(8, 2, '2026-04-07 13:19:56', '528120.00', 'online', 'Nguyễn Mạnh Thắng', '0936159691', '39/9 Hồ Đắc Di', 'Tây Thạnh', 'Tân Phú', 'Hồ Chí Minh', 'pending');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `order_details`
---
-
-CREATE TABLE `order_details` (
-  `id` int(11) NOT NULL,
-  `order_id` int(11) NOT NULL,
-  `product_id` int(11) NOT NULL,
-  `quantity` int(11) NOT NULL,
-  `selling_price` decimal(15,2) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+(8, 2, '2026-04-07 13:19:56', '528120.00', 'online', 'Nguyễn Mạnh Thắng', '0936159691', '39/9 Hồ Đắc Di', 'Tây Thạnh', 'Tân Phú', 'Hồ Chí Minh', 'pending'),
+(9, 5, '2026-04-08 10:47:54', '1069775.70', 'online', 'Phát', '0300000000', '000 SaiGon', '00', '00', '00', 'pending'),
+(10, 5, '2026-04-08 10:49:03', '111256672.80', 'transfer', 'Phát', '0300000000', '000 SaiGon', '00', '00', '00', 'cancelled'),
+(11, 5, '2026-04-08 10:51:44', '127775540.00', 'cash', 'Phát', '0300000000', '000 SaiGon', '00', '00', '00', 'cancelled'),
+(12, 6, '2026-04-08 19:12:34', '448500.00', 'cash', 'Tien Nam', '0932817462', 'hcm', 'fwa', '3ewqd', 'hcm', 'pending'),
+(13, 8, '2026-04-08 20:31:46', '1345500.00', 'cash', 'Nguyễn Minh Huy', '0972875481', '123 Điện Biên Phủ', 'An Khánh', 'Bình Thạnh', 'Hồ Chí Minh', 'pending'),
+(14, 2, '2026-04-08 21:44:28', '3214775.70', 'cash', 'Nguyễn Mạnh Thắng', '0936159691', '39/9 Hồ Đắc Di', 'Tây Thạnh', 'Tân Phú', 'Hồ Chí Minh', 'pending'),
+(15, 2, '2026-04-08 21:46:47', '3214775.70', 'transfer', 'Nguyễn Mạnh Thắng', '0936159691', '39/9 Hồ Đắc Di', 'Tây Thạnh', 'Tân Phú', 'Hồ Chí Minh', 'pending');
 
 --
 -- Dumping data for table `order_details`
@@ -186,30 +103,25 @@ INSERT INTO `order_details` (`id`, `order_id`, `product_id`, `quantity`, `sellin
 (8, 5, 14, 1, '1069775.70'),
 (9, 6, 10, 8, '448500.00'),
 (10, 7, 3, 18, '1058000.00'),
-(11, 8, 8, 1, '528120.00');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `products`
---
-
-CREATE TABLE `products` (
-  `id` int(11) NOT NULL,
-  `code` varchar(50) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `category_id` int(11) NOT NULL,
-  `supplier_id` int(11) NOT NULL,
-  `description` text DEFAULT NULL,
-  `unit` varchar(50) NOT NULL,
-  `initial_quantity` int(11) DEFAULT 0,
-  `cost_price` decimal(15,2) NOT NULL DEFAULT 0.00,
-  `image` varchar(255) DEFAULT NULL,
-  `selling_price` decimal(15,2) NOT NULL DEFAULT 0.00,
-  `profit_margin` decimal(5,2) NOT NULL,
-  `status` enum('visible','hidden','deleted') DEFAULT 'visible',
-  `created_at` datetime DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+(11, 8, 8, 1, '528120.00'),
+(12, 9, 14, 1, '1069775.70'),
+(13, 10, 14, 104, '1069775.70'),
+(14, 11, 10, 1, '448500.00'),
+(15, 11, 12, 50, '175500.00'),
+(16, 11, 9, 15, '612000.00'),
+(17, 11, 8, 17, '528120.00'),
+(18, 11, 6, 20, '1078000.00'),
+(19, 11, 5, 10, '897000.00'),
+(20, 11, 3, 18, '1058000.00'),
+(21, 11, 1, 33, '1540000.00'),
+(22, 12, 10, 1, '448500.00'),
+(23, 13, 10, 3, '448500.00'),
+(24, 14, 12, 2, '175500.00'),
+(25, 14, 14, 1, '1069775.70'),
+(26, 14, 10, 4, '448500.00'),
+(27, 15, 12, 2, '175500.00'),
+(28, 15, 14, 1, '1069775.70'),
+(29, 15, 10, 4, '448500.00');
 
 --
 -- Dumping data for table `products`
@@ -231,18 +143,6 @@ INSERT INTO `products` (`id`, `code`, `name`, `category_id`, `supplier_id`, `des
 (13, 'SMP0001', 'Áo Sơ Mi Vải Oxford Dáng Boxy', 3, 4, 'Điểm nổi bật\r\n- Chất liệu pha cotton–rayon mềm mại, thoải mái.\r\n- Cổ tay áo có thể điều chỉnh với hai nút cài.\r\n- Logo JW ANDERSON được thêu ở phần gấu trước.\r\n- Dáng ngắn với phom rộng.\r\n\r\nChức năng\r\n- Độ xuyên thấu: Không xuyên thấu.\r\n- Dáng: Dáng rộng thoải mái.\r\n\r\nChất liệu / Cách chăm sóc\r\n- 60% Bông, 40% Visco.\r\n- Giặt máy nước lạnh, giặt nhẹ, Giặt khô, Không sấy khô.', 'Cái', 0, '550000.00', 'assets/images/products/1775386201_SMP0001.png', '605000.00', '10.00', 'visible', '2026-04-05 17:50:01'),
 (14, 'Q0001', 'Quần Jeans Baggy Ống Cong', 4, 2, 'Điểm nổi bật\r\n- Dáng quần ôm mềm mại với phần cạp cao ở eo và có độ phồng ở hai bên. Phù hợp cho mọi lứa tuổi.\r\n- Chất vải pha cotton mềm mại và thoải mái. Có thể mặc quanh năm.\r\n- Chỉ có màu XANH DƯƠNG (64 BLUE) được xử lý hiệu ứng sờn rách kiểu cổ điển.\r\n\r\nChức năng\r\n- Độ xuyên thấu: Không xuyên thấu.\r\n- Dáng: Dáng thụng.\r\n- Phom dáng: Ống ôm dần.\r\n- Túi: Có túi.\r\n- Cạp quần: Lưng cao.\r\n\r\nChất liệu / Cách chăm sóc\r\n- Thân: 79% Bông, 21% Lyocell | Vải Túi: 65% Polyeste, 35% Bông.\r\n- Giặt máy nước lạnh, giặt nhẹ, Không giặt khô, Không sấy khô.', 'Cái', 100, '972523.36', 'assets/images/products/1775387299_Q0001.png', '1069775.70', '10.00', 'visible', '2026-04-05 18:08:19');
 
--- --------------------------------------------------------
-
---
--- Table structure for table `suppliers`
---
-
-CREATE TABLE `suppliers` (
-  `id` int(11) NOT NULL,
-  `name` varchar(100) NOT NULL,
-  `contact_info` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 --
 -- Dumping data for table `suppliers`
 --
@@ -253,24 +153,6 @@ INSERT INTO `suppliers` (`id`, `name`, `contact_info`) VALUES
 (3, 'Nguồn hàng Quảng Châu Cao Cấp', 'quangchau_import@yahoo.com - 0911222333'),
 (4, 'Nhà máy dệt may Sài Gòn', 'saigontextile@vogue.com - 0909999888');
 
--- --------------------------------------------------------
-
---
--- Table structure for table `users`
---
-
-CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `fullname` varchar(100) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `phone` varchar(20) NOT NULL,
-  `role` enum('admin','customer') DEFAULT 'customer',
-  `status` enum('active','locked') DEFAULT 'active',
-  `created_at` datetime DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 --
 -- Dumping data for table `users`
 --
@@ -279,177 +161,11 @@ INSERT INTO `users` (`id`, `username`, `password`, `fullname`, `email`, `phone`,
 (1, 'admin', '$2y$10$bsGSIPsnoSKkDWd62zIu8eT76oip3BytGB6y8FV2N1vq8SwcRvPD2', 'Quản Trị Viên', 'admin@vogue.vn', '0900000000', 'admin', 'active', '2026-03-29 17:29:13'),
 (2, 'JaseSous', '$2y$10$JIbL6MrTDcZ7Af0k1TR.fOWQkKD58wTleY5xeriW35eYhfjEc8FoC', 'Nguyễn Mạnh Thắng', 'jasesous@gmail.com', '0936159691', 'customer', 'active', '2026-04-06 20:28:45'),
 (3, 'hẹ hẹ', '$2y$10$HGsq2qG7lSRONENc1/as1.pSTi.3jVN2XjZh4bEdLqmUjzLm3puUS', 'hẹ hẹ', 'hehe@gmail.com', '1234', 'customer', 'active', '2026-04-06 11:00:20'),
-(4, 'phatkhung111lo@gmail.com', '$2y$10$U9wVkForyl/iQQQryXFVdOBEpy6WJ02KAT15xIvD1QzpzxhSang82', 'Tran Huynh Phat', 'daphatvomom0303@gmail.com', '0768847633', 'customer', 'active', '2026-04-06 19:15:29');
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `addresses`
---
-ALTER TABLE `addresses`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
-
---
--- Indexes for table `categories`
---
-ALTER TABLE `categories`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `import_batches`
---
-ALTER TABLE `import_batches`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `receipt_id` (`receipt_id`),
-  ADD KEY `product_id` (`product_id`);
-
---
--- Indexes for table `import_receipts`
---
-ALTER TABLE `import_receipts`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `created_by` (`created_by`);
-
---
--- Indexes for table `orders`
---
-ALTER TABLE `orders`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
-
---
--- Indexes for table `order_details`
---
-ALTER TABLE `order_details`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `order_id` (`order_id`),
-  ADD KEY `product_id` (`product_id`);
-
---
--- Indexes for table `products`
---
-ALTER TABLE `products`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `code` (`code`),
-  ADD KEY `category_id` (`category_id`),
-  ADD KEY `supplier_id` (`supplier_id`);
-
---
--- Indexes for table `suppliers`
---
-ALTER TABLE `suppliers`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `addresses`
---
-ALTER TABLE `addresses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `categories`
---
-ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT for table `import_batches`
---
-ALTER TABLE `import_batches`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- AUTO_INCREMENT for table `import_receipts`
---
-ALTER TABLE `import_receipts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT for table `orders`
---
-ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
-
---
--- AUTO_INCREMENT for table `order_details`
---
-ALTER TABLE `order_details`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
-
---
--- AUTO_INCREMENT for table `products`
---
-ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
-
---
--- AUTO_INCREMENT for table `suppliers`
---
-ALTER TABLE `suppliers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `addresses`
---
-ALTER TABLE `addresses`
-  ADD CONSTRAINT `addresses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `import_batches`
---
-ALTER TABLE `import_batches`
-  ADD CONSTRAINT `import_batches_ibfk_1` FOREIGN KEY (`receipt_id`) REFERENCES `import_receipts` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `import_batches_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `import_receipts`
---
-ALTER TABLE `import_receipts`
-  ADD CONSTRAINT `import_receipts_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`);
-
---
--- Constraints for table `orders`
---
-ALTER TABLE `orders`
-  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
-
---
--- Constraints for table `order_details`
---
-ALTER TABLE `order_details`
-  ADD CONSTRAINT `order_details_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `order_details_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`);
-
---
--- Constraints for table `products`
---
-ALTER TABLE `products`
-  ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`),
-  ADD CONSTRAINT `products_ibfk_2` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`);
+(4, 'phatkhung111lo@gmail.com', '$2y$10$U9wVkForyl/iQQQryXFVdOBEpy6WJ02KAT15xIvD1QzpzxhSang82', 'Tran Huynh Phat', 'daphatvomom0303@gmail.com', '0768847633', 'customer', 'active', '2026-04-06 19:15:29'),
+(5, 'Tony', '$2y$10$m02d3xNVI..rPet.AlDVPuxV7acW.6KhP703toIigDS3tIzK1/6EK', 'Phát', 'hihi1234@gmail.com', '0300000000', 'customer', 'active', '2026-04-07 20:47:28'),
+(6, 'tnam', '$2y$10$iENGK7hZ1F29I03DVTnF5O3I8fMxak0DGSgrYmvpr4T31ktUpYDlu', 'Tien Nam', 'namtat065@gmail.com', '0932817462', 'customer', 'active', '2026-04-08 05:10:50'),
+(7, 'tnam123', '$2y$10$lhuvuFHlBWNpFJpH0A95G.Vltcq2iq0pCkd7O4np.lf5v0aYuK/WG', 'Tien Nam', 'nam12321@gmail.com', '0932817462', 'admin', 'active', '2026-04-08 05:16:43'),
+(8, 'MihhuyX127', '$2y$10$O1vSdPix0Dw0LaM8WaTRVeqFGwBBXjPIYVRKoQm23idpB0iEQwHBy', 'Nguyễn Minh Huy', 'mh.u12706@gmail.com', '0972875481', 'customer', 'active', '2026-04-08 06:16:55');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
